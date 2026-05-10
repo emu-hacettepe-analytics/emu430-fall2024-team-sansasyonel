@@ -3,11 +3,11 @@ title: "Turkish Housing Market"
 subtitle: "Nominal Growth, Real Losses, and Affordability 2010-2024"
 author:
   - name: "Arda Tuyluoglu"
-    url: https://github.com/KULLANICI_ADI_ARDA
+    url: https://emu-hacettepe-analytics.github.io/emu430-spring2026-ardatuyluoglulab/
   - name: "Ilhan Emre Can"
-    url: https://github.com/KULLANICI_ADI_ILHAN
+    url: https://emu-hacettepe-analytics.github.io/emu430-spring2026-ilhanemrecan/
   - name: "Kayra Yaltirik"
-    url: https://github.com/KULLANICI_ADI_KAYRA
+    url: https://emu-hacettepe-analytics.github.io/emu430-spring2026-kayrayltrk/
 date: today
 ---
 
@@ -50,33 +50,33 @@ theme_set(
 
 ## Project Overview
 
-Turkey has experienced one of the world's most dramatic housing price surges
-in recent years, driven by high inflation, sharp currency depreciation,
-post-earthquake demand shocks, and structural supply constraints.
-Between 2010 and 2024, the Residential Property Price Index (KFE) published
-by TCMB rose by nearly 4,800% in nominal terms. After adjusting for
-inflation, the real gain is far more modest and has recently turned negative.
+Turkey has experienced one of the world's most dramatic housing price surges in recent
+years, driven by high inflation, sharp currency depreciation, post-earthquake demand
+shocks, and structural supply constraints. Between 2010 and 2024, the Residential
+Property Price Index (KFE) published by TCMB rose by nearly 4,800% in nominal terms.
+After adjusting for inflation, the real gain is far more modest and has recently
+turned negative.
 
 This project investigates the Turkish housing market through four questions:
 
-1. How have housing prices evolved nominally vs. in real (inflation-adjusted)
-   terms since 2010?
+1. How have housing prices evolved nominally vs. in real (inflation-adjusted) terms
+   since 2010?
 2. Which regions have experienced the most extreme price growth?
-3. How has housing affordability changed, measured by the m2 price-to-minimum
-   wage ratio?
-4. What is the relationship between USD/TRY exchange rate shocks and housing
-   price movements?
+3. How has housing affordability changed, measured by the m2 price-to-minimum wage
+   ratio?
+4. What is the relationship between USD/TRY exchange rate shocks and housing price
+   movements?
 
-Explore the full analysis on the [Analysis](analysis.qmd) page and dataset
-details on the [Data](data.qmd) page.
+Explore the full analysis on the [Analysis](analysis.qmd) page and dataset details
+on the [Data](data.qmd) page.
 
 ---
 
 ## 2024 Snapshot
 
 ```{r topline}
-latest  <- kfe_annual |> filter(year == 2024)
-prev    <- kfe_annual |> filter(year == 2023)
+latest  <- annual_macro |> filter(year == 2024)
+prev    <- annual_macro |> filter(year == 2023)
 aff_now <- affordability |> filter(year == 2024)
 
 tibble::tibble(
@@ -90,13 +90,13 @@ tibble::tibble(
     "Months of min. wage for 100 m2"
   ),
   Value = c(
-    comma(round(latest$kfe_nominal, 1)),
-    comma(round(latest$kfe_real, 1)),
+    comma(round(latest$kfe_nominal_2010base, 1)),
+    comma(round(latest$kfe_real_2010base, 1)),
     paste0(round(latest$kfe_nominal_yoy, 1), "%"),
     paste0(round(latest$kfe_real_yoy, 1), "%"),
     paste0("TRY ", comma(aff_now$avg_m2_price_try)),
     paste0("USD ", comma(aff_now$avg_m2_price_usd)),
-    round(aff_now$affordability_months, 0)
+    round(aff_now$months_100m2, 0)
   )
 ) |>
   kable(align = "lr")
@@ -109,23 +109,20 @@ tibble::tibble(
 ::: {.callout-note icon="false"}
 ### Summary of Findings
 
-- **Nominal surge, real stagnation.** KFE rose ~4,800% in nominal terms from
-  2010 to 2024. After adjusting for CPI, the real index peaked in 2022 at
-  153.7 then fell back to 118.4 by 2024. Buyers largely paid an inflation
-  premium, not a true wealth gain.
+- **Nominal surge, real stagnation.** KFE rose ~4,800% in nominal terms from 2010 to
+  2024. After adjusting for CPI, the real index peaked in 2022 at 153.7 then fell back
+  to 118.4 by 2024. Buyers largely paid an inflation premium, not a true wealth gain.
 
-- **Affordability crisis.** In 2010, a 100 m2 flat cost ~103 monthly minimum
-  wages. By 2023 this rose to ~330 months -- a 3x worsening in 13 years.
+- **Affordability crisis.** In 2010, a 100 m2 flat cost ~110 monthly minimum wages.
+  By 2022 this rose to ~276 months -- a 2.5x worsening driven by prices outpacing wages.
 
-- **Exchange rate pass-through.** The 2018 currency crisis (+60% USD/TRY) and
-  the 2021-22 depreciation (+87%) both preceded the sharpest nominal KFE
-  increases. Correlation between quarterly FX and KFE changes exceeds 0.70.
+- **Exchange rate pass-through.** The 2018 currency crisis and the 2021-22 depreciation
+  both preceded the sharpest nominal KFE increases. Quarterly FX and KFE changes are
+  strongly correlated.
 
-- **Istanbul and Aegean lead, Southeast lags.** Five-year cumulative nominal
-  KFE gain (2020-2024) ranges from ~2,070% in the Aegean to ~1,420% in
-  Southeast Anatolia.
+- **Istanbul and Aegean lead, Southeast lags.** Five-year cumulative nominal KFE gain
+  (2020-2024) ranges from ~2,100% in the Aegean to ~1,400% in Southeast Anatolia.
 
-- **Supply is in structural decline.** Building permits fell from 1.22 million
-  units in 2015 to 549,000 in 2024 -- a 55% drop that signals undersupply
-  through at least 2026-2027.
+- **Supply is in structural decline.** Building permits fell from 1.22 million units
+  in 2015 to 549,000 in 2024 -- a 55% drop that signals undersupply ahead.
 :::

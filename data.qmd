@@ -17,7 +17,7 @@ We integrate four official Turkish data sources:
 
 | # | Source | Series | Coverage |
 |---|---|---|---|
-| 1 | TCMB Konut Fiyat Endeksi | Nominal and real KFE, NUTS-1 regional KFE | Monthly, 2010-2024 |
+| 1 | TCMB Konut Fiyat Endeksi | Nominal and real KFE, NUTS-2 regional KFE | Monthly, 2010-2024 |
 | 2 | TCMB EVDS -- Consumer Prices | CPI index for deflation | Monthly, 2010-2024 |
 | 3 | TCMB EVDS -- Exchange Rates | USD/TRY monthly average | Monthly, 2010-2024 |
 | 4 | TUIK Insaat ve Konut Istatistikleri | Housing sales, building permits | Annual, 2010-2024 |
@@ -29,23 +29,23 @@ We integrate four official Turkish data sources:
 - TUIK Housing Statistics: <https://data.tuik.gov.tr/Kategori/GetKategori?p=insaat-ve-konut-116>
 
 ::: {.callout-note}
-**Why this dataset?** Turkey's housing market has undergone one of the world's
-most extreme price cycles in 2020-2024, driven by a unique combination of
-currency collapse, triple-digit inflation, post-earthquake displacement, and
-supply-side contraction. This makes it an exceptionally rich case study for
-understanding how macroeconomic shocks transmit into asset markets.
+**Why this dataset?** Turkey's housing market has undergone one of the world's most
+extreme price cycles in 2020-2024, driven by a unique combination of currency collapse,
+triple-digit inflation, post-earthquake displacement, and supply-side contraction.
+This makes it an exceptionally rich case for understanding how macroeconomic shocks
+transmit into asset markets.
 :::
 
 ---
 
 ## Preprocessing Pipeline
 
-Raw TCMB and TUIK data require aggregation and cleaning. The full pipeline is
-in `R/01_preprocess.R`. Key steps:
+Raw TCMB and TUIK data require aggregation and cleaning. The full pipeline is in
+`R/01_preprocess.R`. Key steps:
 
 **Step 1 -- Manual extraction.**
-Annual and quarterly series were extracted from TCMB publications and TUIK
-statistical tables into `data/raw_*.csv` files.
+Series were extracted from TCMB publications and TUIK statistical tables into
+`data/raw_*.csv` files, preserving original source values.
 
 **Step 2 -- Tidying.**
 All CSV files are read with UTF-8 encoding and reshaped to one-row-per-observation
@@ -55,60 +55,46 @@ with consistent snake_case column names.
 
 | Variable | Object | Formula |
 |---|---|---|
-| kfe_nominal_yoy | kfe_annual | (kfe_nominal / lag(kfe_nominal) - 1) x 100 |
-| kfe_real_yoy | kfe_annual | (kfe_real / lag(kfe_real) - 1) x 100 |
-| cpi_yoy | kfe_annual | (cpi_index / lag(cpi_index) - 1) x 100 |
-| cumulative_2020_2024_pct | regional_kfe | Compounded 5-year nominal change |
-| real_premium | exchange_housing | kfe_yoy_pct - cpi_yoy_pct |
-| second_hand_share | sales_permits | sales_second_hand / sales_total x 100 |
+| kfe_nominal_yoy | annual_macro | (kfe_nominal / lag - 1) x 100 |
+| kfe_real_yoy | annual_macro | (kfe_real / lag - 1) x 100 |
+| cum_2020_2024_pct | regional_nuts2 | Compounded 5-year nominal change |
+| months_100m2 | affordability | already in source data |
 
 ```{r preprocess-code, eval=FALSE}
 # R/01_preprocess.R -- run once before rendering
-# setwd("sansasyonel/")  then  source("R/01_preprocess.R")
+library(readr); library(dplyr)
 
-library(readr)
-library(dplyr)
+rd <- function(f) read_csv(file.path("data", f),
+                            show_col_types = FALSE,
+                            locale = locale(encoding = "UTF-8"))
 
-read_raw <- function(f) {
-  read_csv(file.path("data", f),
-           show_col_types = FALSE,
-           locale = locale(encoding = "UTF-8"))
-}
+monthly_data <- rd("raw_monthly_kfe_cpi_usdtry.csv")
 
-kfe_annual <- read_raw("raw_kfe_annual.csv") |>
+annual_macro <- rd("raw_annual_macro.csv") |>
   mutate(
-    kfe_nominal_yoy = (kfe_nominal / lag(kfe_nominal) - 1) * 100,
-    kfe_real_yoy    = (kfe_real    / lag(kfe_real)    - 1) * 100,
-    cpi_yoy         = (cpi_index   / lag(cpi_index)   - 1) * 100,
-    kfe_cumulative  = kfe_nominal / 100
+    kfe_nominal_yoy = (kfe_nominal_2010base / lag(kfe_nominal_2010base) - 1) * 100,
+    kfe_real_yoy    = (kfe_real_2010base    / lag(kfe_real_2010base)    - 1) * 100
   )
 
-regional_kfe <- read_raw("raw_regional_kfe.csv") |>
+regional_nuts2 <- rd("raw_regional_nuts2.csv") |>
   mutate(
-    avg_annual_pct = (kfe_2020_pct + kfe_2021_pct + kfe_2022_pct +
-                      kfe_2023_pct + kfe_2024_pct) / 5,
-    cumulative_2020_2024_pct =
-      ((1 + kfe_2020_pct/100) * (1 + kfe_2021_pct/100) *
-       (1 + kfe_2022_pct/100) * (1 + kfe_2023_pct/100) *
-       (1 + kfe_2024_pct/100) - 1) * 100
+    cum_2020_2024_pct =
+      ((1 + kfe_2020_yoy_pct/100) * (1 + kfe_2021_yoy_pct/100) *
+       (1 + kfe_2022_yoy_pct/100) * (1 + kfe_2023_yoy_pct/100) *
+       (1 + kfe_2024_yoy_pct/100) - 1) * 100
   )
 
-affordability    <- read_raw("raw_affordability.csv")
+city_monthly   <- rd("raw_city_kfe_monthly.csv")
+affordability  <- rd("raw_affordability_annual.csv")
+quarterly_fx   <- rd("raw_quarterly_kfe_fx.csv")
+housing_sales  <- rd("raw_housing_sales_annual.csv")
+permits        <- rd("raw_building_permits_annual.csv")
+minwage        <- rd("raw_minimum_wage_history.csv")
+kfe_new_exist  <- rd("raw_kfe_new_vs_existing.csv")
 
-exchange_housing <- read_raw("raw_exchange_housing.csv") |>
-  mutate(
-    period       = paste0(year, " ", quarter),
-    real_premium = kfe_yoy_pct - cpi_yoy_pct
-  )
-
-sales_permits <- read_raw("raw_sales_permits.csv") |>
-  mutate(
-    second_hand_share = sales_second_hand / sales_total * 100,
-    mortgage_share    = sales_mortgage    / sales_total * 100
-  )
-
-save(kfe_annual, regional_kfe, affordability,
-     exchange_housing, sales_permits,
+save(monthly_data, annual_macro, regional_nuts2, city_monthly,
+     affordability, quarterly_fx, housing_sales, permits,
+     minwage, kfe_new_exist,
      file = "data/housing_market_tr.RData")
 ```
 
@@ -119,63 +105,88 @@ save(kfe_annual, regional_kfe, affordability,
 **[Download housing_market_tr.RData](data/housing_market_tr.RData)**
 
 ```r
-load("data/housing_market_tr.RData")  # loads 5 data frames
+load("data/housing_market_tr.RData")  # loads 10 objects
 ```
 
 ### Contents
 
 ```{r contents-table}
 tibble::tibble(
-  Object = c("kfe_annual", "regional_kfe", "affordability",
-             "exchange_housing", "sales_permits"),
+  Object = c("annual_macro", "monthly_data", "regional_nuts2", "city_monthly",
+             "affordability", "quarterly_fx", "housing_sales", "permits",
+             "minwage", "kfe_new_exist"),
   Description = c(
-    "Annual KFE (nominal and real), CPI, USD/TRY, sales, permits 2010-2024",
-    "NUTS-1 regional annual KFE change % and median unit prices 2020-2024",
-    "Housing affordability: m2 price, min. wage, months-to-buy 2010-2024",
-    "Quarterly USD/TRY vs KFE for correlation analysis 2018-2024",
-    "Annual housing sales by type and building permits 2010-2024"
+    "Annual KFE (nominal+real), CPI, USD/TRY, sales, permits 2010-2024 (17 cols)",
+    "Monthly KFE, CPI, USD/TRY time series 2010-2024 (180 rows)",
+    "26 NUTS-2 regions: annual KFE change % and 2024 median price",
+    "Istanbul, Ankara, Izmir monthly KFE + m2 price comparison",
+    "Annual affordability: m2 price, min. wage, months-to-buy 2010-2024",
+    "Quarterly USD/TRY vs KFE for correlation analysis 2015-2024",
+    "Annual housing sales by type (total, first-hand, mortgage, foreign)",
+    "Annual building permits and occupancy certificates 2010-2024",
+    "Minimum wage gross/net history with mid-year adjustments 2010-2024",
+    "New (YKFE) vs existing (YOKFE) housing price index 2010-2024"
   ),
-  Rows = c(nrow(kfe_annual), nrow(regional_kfe), nrow(affordability),
-           nrow(exchange_housing), nrow(sales_permits))
+  Rows = c(
+    nrow(annual_macro), nrow(monthly_data), nrow(regional_nuts2),
+    nrow(city_monthly), nrow(affordability), nrow(quarterly_fx),
+    nrow(housing_sales), nrow(permits), nrow(minwage), nrow(kfe_new_exist)
+  )
 ) |> kable()
 ```
 
-### Preview -- kfe_annual
+### Preview -- annual_macro
 
-```{r dt-kfe}
-kfe_annual |>
-  select(year, kfe_nominal, kfe_real, cpi_index, usdtry_avg,
-         kfe_nominal_yoy, kfe_real_yoy) |>
+```{r dt-annual}
+annual_macro |>
+  select(year, kfe_nominal_2010base, kfe_real_2010base, cpi_yoy_pct,
+         usdtry_annual_avg, kfe_nominal_yoy, kfe_real_yoy) |>
   mutate(
-    kfe_nominal     = round(kfe_nominal, 1),
-    kfe_real        = round(kfe_real, 1),
-    kfe_nominal_yoy = round(kfe_nominal_yoy, 1),
-    kfe_real_yoy    = round(kfe_real_yoy, 1)
+    kfe_nominal_2010base = round(kfe_nominal_2010base, 1),
+    kfe_real_2010base    = round(kfe_real_2010base, 1),
+    cpi_yoy_pct          = round(cpi_yoy_pct, 2),
+    kfe_nominal_yoy      = round(kfe_nominal_yoy, 1),
+    kfe_real_yoy         = round(kfe_real_yoy, 1)
   ) |>
   datatable(
     rownames = FALSE,
     options  = list(pageLength = 15, dom = "t"),
-    caption  = "Annual KFE series, 2010-2024"
+    caption  = "Annual KFE + macro series, 2010-2024"
   )
 ```
 
-### Preview -- regional_kfe
+### Preview -- regional_nuts2 (26 NUTS-2 regions)
 
 ```{r dt-regional}
-regional_kfe |>
-  select(region_code, region_name, kfe_2022_pct, kfe_2023_pct,
-         kfe_2024_pct, avg_annual_pct, cumulative_2020_2024_pct,
-         median_price_2024_try_m2) |>
+regional_nuts2 |>
+  select(region_code, region_name, kfe_2022_yoy_pct, kfe_2023_yoy_pct,
+         kfe_2024_yoy_pct, cum_2020_2024_pct, median_price_try_m2_2024) |>
   mutate(
-    avg_annual_pct           = round(avg_annual_pct, 1),
-    cumulative_2020_2024_pct = round(cumulative_2020_2024_pct, 1),
-    median_price_2024_try_m2 = comma(median_price_2024_try_m2)
+    cum_2020_2024_pct        = round(cum_2020_2024_pct, 1),
+    median_price_try_m2_2024 = comma(median_price_try_m2_2024)
   ) |>
   datatable(
     rownames = FALSE,
     filter   = "top",
-    options  = list(pageLength = 12, dom = "ftp"),
-    caption  = "Regional KFE annual change % and 2024 median unit price"
+    options  = list(pageLength = 13, dom = "ftp"),
+    caption  = "Regional KFE change % and 2024 median unit price (26 NUTS-2 regions)"
+  )
+```
+
+### Preview -- monthly_data (180 months)
+
+```{r dt-monthly}
+monthly_data |>
+  filter(year >= 2020) |>
+  mutate(
+    kfe_nominal_2010base = round(kfe_nominal_2010base, 1),
+    cpi_yoy_pct          = round(cpi_yoy_pct, 2)
+  ) |>
+  datatable(
+    rownames = FALSE,
+    filter   = "top",
+    options  = list(pageLength = 10, dom = "ftp"),
+    caption  = "Monthly KFE + CPI + USD/TRY (showing 2020-2024; full dataset has 180 rows)"
   )
 ```
 
@@ -183,13 +194,18 @@ regional_kfe |>
 
 ## Data Quality Notes
 
-- **KFE methodology revision (July 2024).** TCMB revised the KFE from a
-  quarterly to a monthly hedonic regression model, rebasing to 2023=100.
-  The annual series here uses a consistent 2010=100 base.
+- **KFE methodology revision (July 2024).** TCMB revised the KFE from a quarterly
+  to a monthly hedonic regression model, rebasing to 2023=100. The monthly series
+  here preserves both bases (2023=100 and 2010=100) for comparability.
 
-- **Regional data.** NUTS-1 breakdowns are published as annual % change.
-  Median unit prices are TCMB quarterly figures averaged to annual.
+- **Regional data.** NUTS-2 regional breakdowns (26 regions) are published as annual
+  % change figures. Median unit prices are TCMB quarterly figures averaged to annual.
 
-- **Sales data.** First-hand / second-hand split is available from 2015.
+- **Sales data.** First-hand / second-hand split is available from 2015. 2024 total
+  reflects TUIK revised figure of 1,319,539.
 
-- **CPI deflation.** Real KFE is computed using TURKSTAT official CPI.
+- **CPI deflation.** Real KFE uses TURKSTAT official CPI (2003=100 base, consistent
+  series converted to 2010=100 for this analysis).
+
+- **Missing values.** Some regional 2024 figures are NA where TCMB had not published
+  quarterly data by the time of data collection. These are coded as NA, not imputed.

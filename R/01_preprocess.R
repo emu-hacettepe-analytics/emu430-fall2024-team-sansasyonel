@@ -17,7 +17,7 @@ library(dplyr)
 
 cat("-- Preprocessing starting --\n")
 
-read_raw <- function(f) {
+rd <- function(f) {
   readr::read_csv(
     file.path("data", f),
     show_col_types = FALSE,
@@ -25,59 +25,46 @@ read_raw <- function(f) {
   )
 }
 
-# 1. Annual KFE + macro series 2010-2024
-kfe_annual <- read_raw("raw_kfe_annual.csv") |>
-  mutate(
-    kfe_nominal_yoy = (kfe_nominal / lag(kfe_nominal) - 1) * 100,
-    kfe_real_yoy    = (kfe_real    / lag(kfe_real)    - 1) * 100,
-    cpi_yoy         = (cpi_index   / lag(cpi_index)   - 1) * 100,
-    kfe_cumulative  = kfe_nominal / 100,
-    kfe_real_norm   = kfe_real
-  )
-cat("  OK kfe_annual       :", nrow(kfe_annual), "rows\n")
+monthly_data <- rd("raw_monthly_kfe_cpi_usdtry.csv")
+cat("  OK monthly_data  :", nrow(monthly_data), "rows\n")
 
-# 2. Regional KFE (NUTS-1)
-regional_kfe <- read_raw("raw_regional_kfe.csv") |>
+annual_macro <- rd("raw_annual_macro.csv") |>
   mutate(
-    avg_annual_pct = (kfe_2020_pct + kfe_2021_pct + kfe_2022_pct +
-                      kfe_2023_pct + kfe_2024_pct) / 5,
-    cumulative_2020_2024 =
-      (1 + kfe_2020_pct/100) *
-      (1 + kfe_2021_pct/100) *
-      (1 + kfe_2022_pct/100) *
-      (1 + kfe_2023_pct/100) *
-      (1 + kfe_2024_pct/100) - 1,
-    cumulative_2020_2024_pct = cumulative_2020_2024 * 100
+    kfe_nominal_yoy = (kfe_nominal_2010base / lag(kfe_nominal_2010base) - 1) * 100,
+    kfe_real_yoy    = (kfe_real_2010base    / lag(kfe_real_2010base)    - 1) * 100
   )
-cat("  OK regional_kfe     :", nrow(regional_kfe), "rows\n")
+cat("  OK annual_macro  :", nrow(annual_macro), "rows\n")
 
-# 3. Affordability
-affordability <- read_raw("raw_affordability.csv") |>
+regional_nuts2 <- rd("raw_regional_nuts2.csv") |>
   mutate(
-    months_100m2 = affordability_months,
-    m2_usd       = avg_m2_price_usd
+    cum_2020_2024_pct =
+      ((1 + kfe_2020_yoy_pct/100) *
+       (1 + kfe_2021_yoy_pct/100) *
+       (1 + kfe_2022_yoy_pct/100) *
+       (1 + kfe_2023_yoy_pct/100) *
+       (1 + kfe_2024_yoy_pct/100) - 1) * 100
   )
-cat("  OK affordability    :", nrow(affordability), "rows\n")
+cat("  OK regional_nuts2:", nrow(regional_nuts2), "rows\n")
 
-# 4. Exchange rate vs. housing (quarterly)
-exchange_housing <- read_raw("raw_exchange_housing.csv") |>
-  mutate(
-    period       = paste0(year, " ", quarter),
-    real_premium = kfe_yoy_pct - cpi_yoy_pct
-  )
-cat("  OK exchange_housing :", nrow(exchange_housing), "rows\n")
+city_monthly  <- rd("raw_city_kfe_monthly.csv")
+affordability <- rd("raw_affordability_annual.csv")
+quarterly_fx  <- rd("raw_quarterly_kfe_fx.csv")
+housing_sales <- rd("raw_housing_sales_annual.csv")
+permits       <- rd("raw_building_permits_annual.csv")
+minwage       <- rd("raw_minimum_wage_history.csv")
+kfe_new_exist <- rd("raw_kfe_new_vs_existing.csv")
 
-# 5. Sales and permits
-sales_permits <- read_raw("raw_sales_permits.csv") |>
-  mutate(
-    second_hand_share = sales_second_hand / sales_total * 100,
-    mortgage_share    = sales_mortgage    / sales_total * 100
-  )
-cat("  OK sales_permits    :", nrow(sales_permits), "rows\n")
+cat("  OK city_monthly  :", nrow(city_monthly), "rows\n")
+cat("  OK affordability :", nrow(affordability), "rows\n")
+cat("  OK quarterly_fx  :", nrow(quarterly_fx), "rows\n")
+cat("  OK housing_sales :", nrow(housing_sales), "rows\n")
+cat("  OK permits       :", nrow(permits), "rows\n")
+cat("  OK minwage       :", nrow(minwage), "rows\n")
+cat("  OK kfe_new_exist :", nrow(kfe_new_exist), "rows\n")
 
-# Save
-save(kfe_annual, regional_kfe, affordability,
-     exchange_housing, sales_permits,
+save(monthly_data, annual_macro, regional_nuts2, city_monthly,
+     affordability, quarterly_fx, housing_sales, permits,
+     minwage, kfe_new_exist,
      file = "data/housing_market_tr.RData")
 
-cat("\nSaved: data/housing_market_tr.RData\n")
+cat("\nSaved: data/housing_market_tr.RData (10 objects)\n")
