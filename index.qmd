@@ -11,11 +11,11 @@ This is our template.
 
 # Team Members
 
-1.  Kayra Yaltırık https://emu-hacettepe-analytics.github.io/emu430-spring2026-kayrayltrk/
+1.  Kayra Yaltirik https://emu-hacettepe-analytics.github.io/emu430-spring2026-kayrayltrk/
 
-2.  İlhan Emre Can https://emu-hacettepe-analytics.github.io/emu430-spring2026-ilhanemrecan/
+2.  Ilhan Emre Can https://emu-hacettepe-analytics.github.io/emu430-spring2026-ilhanemrecan/
 
-3.  Arda Tüylüoğlu https://emu-hacettepe-analytics.github.io/emu430-spring2026-ardatuyluoglulab/
+3.  Arda Tuyluoglu https://emu-hacettepe-analytics.github.io/emu430-spring2026-ardatuyluoglulab/
 
 
 # Project Topic
