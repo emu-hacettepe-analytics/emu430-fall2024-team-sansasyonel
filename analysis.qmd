@@ -1,6 +1,6 @@
 ---
 title: "Analysis"
-subtitle: "Nominal Surge, Real Stagnation, and the Affordability Crisis — 2010–2024"
+subtitle: "Nominal Surge, Real Stagnation, and the Affordability Crisis 2010-2024"
 ---
 
 ```{r setup, include=FALSE}
@@ -45,18 +45,16 @@ theme_set(
 ::: {.callout-note icon="false"}
 ### Key Takeaways
 
-- **Nominal surge, real stagnation.** KFE rose ~4,800% nominally (2010–2024); in real
-  terms the index peaked at 153.7 in 2022 and fell back to 118.4 by 2024, suggesting
-  the surge was largely inflation-driven.
-- **Affordability collapsed.** The months-of-minimum-wage needed to buy 100 m² rose
-  from ~103 in 2010 to ~330 in 2023 — a 3× worsening in a decade.
-- **Exchange rate shocks transmit into housing prices.** Quarterly correlations between
-  USD/TRY change and KFE change exceed 0.70 — currency depreciation episodes directly
-  precede or accompany the sharpest price spikes.
-- **Istanbul and Aegean lead, Southeast lags.** Five-year cumulative nominal gains
-  range from ~2,000% (Aegean) to ~1,400% (Southeast Anatolia).
-- **Supply is in structural decline.** Building permits halved from 2015 peak to 2024,
-  compressing supply just as demand surged post-earthquake.
+- **Nominal surge, real stagnation.** KFE rose ~4,800% nominally (2010-2024);
+  in real terms the index peaked at 153.7 in 2022 and fell to 118.4 by 2024.
+- **Affordability collapsed.** Months of minimum wage to buy 100 m2 rose from
+  103 in 2010 to 330 in 2023 -- a 3x worsening in 13 years.
+- **Exchange rate pass-through is strong.** Quarterly correlations between
+  USD/TRY and KFE changes exceed 0.70.
+- **Istanbul and Aegean lead, Southeast lags.** Five-year cumulative nominal
+  gains range from ~2,070% (Aegean) to ~1,420% (Southeast Anatolia).
+- **Supply is contracting.** Building permits fell from 1.22 million units in
+  2015 to 549,000 in 2024 -- a 55% drop.
 :::
 
 ---
@@ -77,28 +75,29 @@ kfe_annual |>
   scale_x_continuous(breaks = 2010:2024) +
   scale_y_continuous(labels = comma) +
   labs(
-    title    = "Nominal vs. real KFE, 2010–2024 (2010 = 100)",
+    title   = "Nominal vs. real KFE, 2010-2024 (2010 = 100)",
     subtitle = "Nominal growth is dramatic; real gains are modest and recently reversed",
     x = NULL, y = "Index (2010 = 100)",
-    caption  = "Source: TCMB KFE; deflated using TURKSTAT CPI."
+    caption = "Source: TCMB KFE; deflated using TURKSTAT CPI."
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-The two lines tell a strikingly different story. While the **nominal index** rose
-~48× from 2010 to 2024, the **real index** peaked at 153.7 in 2022 — just 54% above
-its 2010 level — before declining. By 2024, real house prices were lower than in 2022,
-meaning buyers who purchased at the peak paid a substantial inflation premium with no
-real asset gain.
+The two lines tell a strikingly different story. While the nominal index rose
+~48x from 2010 to 2024, the real index peaked at 153.7 in 2022 -- just 54%
+above its 2010 level -- before declining. By 2024, real house prices were lower
+than in 2022, meaning buyers who purchased at the peak paid a substantial
+inflation premium with no real asset gain.
 
 ### 1.2 Annual change rates
 
 ```{r yoy-change, fig.height=4}
 kfe_annual |>
   filter(!is.na(kfe_nominal_yoy)) |>
-  select(year, `KFE nominal YoY %` = kfe_nominal_yoy,
-               `CPI YoY %`         = cpi_yoy,
-               `KFE real YoY %`    = kfe_real_yoy) |>
+  select(year,
+         `KFE nominal YoY %` = kfe_nominal_yoy,
+         `CPI YoY %`         = cpi_yoy,
+         `KFE real YoY %`    = kfe_real_yoy) |>
   pivot_longer(-year, names_to = "series", values_to = "pct") |>
   ggplot(aes(year, pct, fill = series)) +
   geom_col(position = "dodge", width = 0.7) +
@@ -110,26 +109,26 @@ kfe_annual |>
   scale_x_continuous(breaks = 2011:2024) +
   scale_y_continuous(labels = label_percent(scale = 1)) +
   labs(
-    title    = "Annual price change: KFE vs. CPI, 2011–2024",
-    subtitle = "Real KFE turned negative in 2018 and again in 2023–2024",
+    title   = "Annual price change: KFE vs. CPI, 2011-2024",
+    subtitle = "Real KFE turned negative in 2018 and again in 2023-2024",
     x = NULL, y = "Year-on-year change (%)",
-    caption  = "Source: TCMB KFE, TURKSTAT CPI."
+    caption = "Source: TCMB KFE, TURKSTAT CPI."
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-The **real KFE went negative** in two distinct episodes: 2018–2019 (after the currency
-crisis) and again in 2023–2024 (as inflation ran ahead of price growth). In 2022 the
-nominal KFE surged ~183% YoY — yet even then, the CPI surge of ~85% limited real gains
-to ~53%. The 2024 real decline of ~8% suggests the boom is ending in real terms.
+The real KFE went negative in two distinct episodes: 2018-2019 after the
+currency crisis, and again in 2023-2024 as inflation ran ahead of price
+growth. In 2022 the nominal KFE surged ~183% YoY, yet CPI at ~85% limited
+real gains to ~53%.
 
 ### 1.3 Cumulative growth: housing vs. inflation
 
 ```{r cumulative, fig.height=4}
 kfe_annual |>
   mutate(
-    cpi_cumul = cpi_index / 100,   # 2010=1
-    kfe_cumul = kfe_nominal / 100  # 2010=1
+    cpi_cumul = cpi_index / 100,
+    kfe_cumul = kfe_nominal / 100
   ) |>
   select(year, `Nominal KFE` = kfe_cumul, `CPI` = cpi_cumul) |>
   pivot_longer(-year) |>
@@ -138,12 +137,12 @@ kfe_annual |>
   geom_point(size = 2) +
   scale_colour_manual(values = c(pal$muted, pal$accent), name = NULL) +
   scale_x_continuous(breaks = 2010:2024) +
-  scale_y_continuous(labels = label_number(suffix = "×")) +
+  scale_y_continuous(labels = label_number(suffix = "x")) +
   labs(
-    title    = "Cumulative multiplier since 2010 — KFE vs. general inflation",
-    subtitle = "In 2022–2023, housing outpaced CPI; by 2024 the gap is closing",
-    x = NULL, y = "Cumulative multiplier (2010 = 1×)",
-    caption  = "Source: TCMB KFE; TURKSTAT CPI."
+    title   = "Cumulative multiplier since 2010: KFE vs. general inflation",
+    subtitle = "In 2022-2023, housing outpaced CPI; by 2024 the gap is closing",
+    x = NULL, y = "Cumulative multiplier (2010 = 1x)",
+    caption = "Source: TCMB KFE; TURKSTAT CPI."
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
@@ -152,7 +151,7 @@ kfe_annual |>
 
 ## 2. Regional Analysis
 
-### 2.1 Five-year cumulative nominal change (2020–2024)
+### 2.1 Five-year cumulative nominal change (2020-2024)
 
 ```{r regional-bar, fig.height=5}
 regional_kfe |>
@@ -168,44 +167,48 @@ regional_kfe |>
     expand = expansion(mult = c(0, 0.15))
   ) +
   labs(
-    title    = "Cumulative nominal KFE change by NUTS-1 region, 2020–2024",
-    subtitle = "Five-year compounded gain — Aegean and West Anatolia lead",
+    title   = "Cumulative nominal KFE change by NUTS-1 region, 2020-2024",
+    subtitle = "Five-year compounded gain -- Aegean and West Anatolia lead",
     x = "Cumulative % change", y = NULL,
-    caption  = "Source: TCMB KFE regional data."
+    caption = "Source: TCMB KFE regional data."
   )
 ```
 
-The **Aegean region** (İzmir, Muğla, Aydın) recorded the highest five-year cumulative
-gain at ~2,070%, driven by strong coastal demand and urban migration. **Southeast
-Anatolia** lagged at ~1,420%, reflecting lower income levels and weaker investor
-demand. The range is roughly **1.5× between the fastest and slowest region**.
+The Aegean region (Izmir, Mugla, Aydin) recorded the highest five-year
+cumulative gain at ~2,070%, driven by strong coastal demand and urban
+migration. Southeast Anatolia lagged at ~1,420%, reflecting lower income
+levels and weaker investor demand.
 
-### 2.2 Annual regional comparison (2022–2024)
+### 2.2 Annual regional heatmap (2022-2024)
 
 ```{r regional-heatmap, fig.height=5}
 regional_kfe |>
-  select(region_name, `2022` = kfe_2022_pct, `2023` = kfe_2023_pct, `2024` = kfe_2024_pct) |>
+  select(region_name,
+         `2022` = kfe_2022_pct,
+         `2023` = kfe_2023_pct,
+         `2024` = kfe_2024_pct) |>
   pivot_longer(-region_name, names_to = "year", values_to = "pct") |>
   mutate(region_name = fct_reorder(region_name, pct, mean)) |>
   ggplot(aes(year, region_name, fill = pct)) +
   geom_tile(colour = "white", linewidth = 0.5) +
-  geom_text(aes(label = paste0(round(pct, 0), "%")), size = 3.2, colour = "white") +
+  geom_text(aes(label = paste0(round(pct, 0), "%")),
+            size = 3.2, colour = "white") +
   scale_fill_gradient2(
-    low     = pal$secondary,
-    mid     = pal$warn,
-    high    = pal$accent,
+    low      = pal$secondary,
+    mid      = pal$warn,
+    high     = pal$accent,
     midpoint = 50,
-    name    = "YoY change (%)"
+    name     = "YoY (%)"
   ) +
   labs(
-    title    = "Annual KFE change by region, 2022–2024 (%)",
+    title   = "Annual KFE change by region, 2022-2024 (%)",
     subtitle = "2022 saw nationwide triple-digit gains; cooling is visible but uneven",
     x = NULL, y = NULL,
-    caption  = "Source: TCMB KFE."
+    caption = "Source: TCMB KFE."
   )
 ```
 
-### 2.3 Median m² price by region, 2024
+### 2.3 Median m2 price by region, 2024
 
 ```{r regional-prices, fig.height=5}
 regional_kfe |>
@@ -213,30 +216,30 @@ regional_kfe |>
   ggplot(aes(median_price_2024_try_m2, region_name)) +
   geom_col(fill = pal$accent) +
   geom_text(
-    aes(label = paste0("₺", comma(median_price_2024_try_m2))),
+    aes(label = paste0("TRY ", comma(median_price_2024_try_m2))),
     hjust = -0.1, size = 3.2
   ) +
   scale_x_continuous(
-    labels = label_number(prefix = "₺", big.mark = ","),
+    labels = label_number(big.mark = ","),
     expand = expansion(mult = c(0, 0.2))
   ) +
   labs(
-    title    = "Median housing unit price (TRY / m²) by NUTS-1 region, 2024",
-    subtitle = "Istanbul commands a 3× premium over Southeast Anatolia",
-    x = "Median price (TRY / m²)", y = NULL,
-    caption  = "Source: TCMB KFE quarterly unit price data."
+    title   = "Median housing unit price (TRY / m2) by NUTS-1 region, 2024",
+    subtitle = "Istanbul commands a 3x premium over Southeast Anatolia",
+    x = "Median price (TRY / m2)", y = NULL,
+    caption = "Source: TCMB KFE quarterly unit price data."
   )
 ```
 
-Istanbul's median of **₺95,420/m²** is **3.4×** Southeast Anatolia's ₺28,150/m² —
-reflecting deep structural differences in income, urbanisation density, and investment
-demand.
+Istanbul's median of TRY 95,420/m2 is 3.4x Southeast Anatolia's TRY 28,150/m2,
+reflecting deep structural differences in income, urbanisation density, and
+investment demand.
 
 ---
 
 ## 3. Housing Affordability
 
-### 3.1 Months of minimum wage to buy 100 m²
+### 3.1 Months of minimum wage to buy 100 m2
 
 ```{r affordability-months, fig.height=4.5}
 affordability |>
@@ -246,25 +249,27 @@ affordability |>
   geom_point(colour = pal$accent, size = 2.5) +
   geom_hline(yintercept = 103.2, linetype = "dashed",
              colour = pal$muted, linewidth = 0.6) +
-  annotate("text", x = 2010.5, y = 110, label = "2010 baseline: 103 months",
+  annotate("text", x = 2010.5, y = 115,
+           label = "2010 baseline: 103 months",
            colour = pal$muted, size = 3.5, hjust = 0) +
   scale_x_continuous(breaks = 2010:2024) +
   scale_y_continuous(labels = comma) +
   labs(
-    title    = "Months of minimum wage required to purchase 100 m², 2010–2024",
-    subtitle = "Affordability worsened 3× in 13 years — a structural housing crisis",
-    x = NULL, y = "Monthly minimum wages (# of months)",
-    caption  = "Source: TCMB KFE unit prices; TURKSTAT minimum wage series."
+    title   = "Months of minimum wage required to purchase 100 m2, 2010-2024",
+    subtitle = "Affordability worsened 3x in 13 years -- a structural housing crisis",
+    x = NULL, y = "Monthly minimum wages (number of months)",
+    caption = "Source: TCMB KFE unit prices; TURKSTAT minimum wage series."
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-In 2010, a Turkish worker on minimum wage needed ~**103 months** (~8.6 years) of income
-to buy a 100 m² flat. By 2023 this had risen to **~330 months** (~27.5 years) — a
-3.2× deterioration. The slight improvement in 2024 reflects minimum wage increases
-outpacing nominal KFE growth that year, but affordability remains structurally impaired.
+In 2010, a Turkish worker on minimum wage needed ~103 months (~8.6 years) of
+income to buy a 100 m2 flat. By 2023 this had risen to ~330 months (~27.5
+years) -- a 3.2x deterioration. The slight improvement in 2024 reflects
+minimum wage increases outpacing nominal KFE growth that year, but
+affordability remains structurally impaired.
 
-### 3.2 USD-denominated prices — the dollarisation lens
+### 3.2 USD-denominated prices
 
 ```{r usd-prices, fig.height=4}
 affordability |>
@@ -275,86 +280,74 @@ affordability |>
   scale_x_continuous(breaks = 2010:2024) +
   scale_y_continuous(labels = label_dollar()) +
   labs(
-    title    = "Average housing price in USD / m², 2010–2024",
-    subtitle = "Dollar prices rose then collapsed with TRY depreciation — real foreign-currency affordability improved",
-    x = NULL, y = "USD / m²",
-    caption  = "Source: TCMB KFE; TCMB USD/TRY average exchange rate."
+    title   = "Average housing price in USD / m2, 2010-2024",
+    subtitle = "Dollar prices peaked in 2024 after collapsing with TRY depreciation in 2019-2022",
+    x = NULL, y = "USD / m2",
+    caption = "Source: TCMB KFE; TCMB USD/TRY average exchange rate."
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-Viewed in USD, the picture inverts: **dollar-denominated prices peaked at ~$918/m² in
-2022** then fell as TRY depreciated faster than nominal prices rose. By 2024 the USD
-price had partially recovered to ~$1,587. This bifurcation — lira prices rising while
-dollar prices fluctuate — captures the inflation illusion at the heart of the Turkish
-housing boom.
-
-### 3.3 Min. wage vs. avg. m² price over time
+### 3.3 Minimum wage vs. average m2 price
 
 ```{r wage-vs-price, fig.height=4}
 affordability |>
   select(year,
          `Minimum wage (TRY)` = min_wage_monthly_try,
-         `Avg. m² price (TRY)` = avg_m2_price_try) |>
+         `Avg. m2 price (TRY)` = avg_m2_price_try) |>
   pivot_longer(-year, names_to = "series", values_to = "value") |>
   ggplot(aes(year, value, colour = series)) +
   geom_line(linewidth = 1.1) +
   geom_point(size = 2) +
   scale_colour_manual(values = c(pal$accent, pal$secondary), name = NULL) +
   scale_x_continuous(breaks = 2010:2024) +
-  scale_y_log10(labels = label_number(prefix = "₺", big.mark = ",")) +
+  scale_y_log10(labels = label_number(big.mark = ",")) +
   labs(
-    title    = "Minimum wage vs. average m² price, 2010–2024 (log scale)",
-    subtitle = "Housing prices grew faster than wages — especially post-2021",
+    title   = "Minimum wage vs. average m2 price, 2010-2024 (log scale)",
+    subtitle = "Housing prices grew faster than wages, especially post-2021",
     x = NULL, y = "TRY (log scale)",
-    caption  = "Source: TCMB KFE unit prices; TURKSTAT minimum wage."
+    caption = "Source: TCMB KFE unit prices; TURKSTAT minimum wage."
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 ---
 
-## 4. Exchange Rate & Housing Price Relationship
+## 4. Exchange Rate and Housing Price Relationship
 
-### 4.1 USD/TRY vs. nominal KFE — quarterly
+### 4.1 USD/TRY vs. nominal KFE (quarterly)
 
 ```{r fx-kfe, fig.height=4.5}
+base_usd <- exchange_housing$usdtry[1]
+base_kfe <- exchange_housing$kfe_nominal[1]
+
 exchange_housing |>
-  select(period, year, quarter,
-         `USD/TRY` = usdtry,
-         `KFE nominal` = kfe_nominal) |>
-  pivot_longer(c(`USD/TRY`, `KFE nominal`), names_to = "series", values_to = "value") |>
   mutate(
-    value_norm = ifelse(series == "USD/TRY",
-                        value / exchange_housing$usdtry[1],
-                        value / exchange_housing$kfe_nominal[1])
+    usdtry_norm = usdtry / base_usd,
+    kfe_norm    = kfe_nominal / base_kfe
   ) |>
-  ggplot(aes(period, value_norm, colour = series, group = series)) +
+  select(period, `USD/TRY` = usdtry_norm, `KFE nominal` = kfe_norm) |>
+  pivot_longer(-period, names_to = "series", values_to = "value") |>
+  ggplot(aes(period, value, colour = series, group = series)) +
   geom_line(linewidth = 1.1) +
   geom_point(size = 1.8) +
   scale_colour_manual(values = c(pal$secondary, pal$accent), name = NULL) +
-  scale_y_continuous(labels = label_number(suffix = "×")) +
+  scale_y_continuous(labels = label_number(suffix = "x")) +
   labs(
-    title    = "USD/TRY vs. KFE — both normalised to Q1 2018 = 1×",
+    title   = "USD/TRY vs. KFE -- both normalised to Q1 2018 = 1x",
     subtitle = "Currency depreciation consistently leads or accompanies KFE spikes",
-    x = NULL, y = "Index (Q1 2018 = 1×)",
-    caption  = "Source: TCMB EVDS (USD/TRY); TCMB KFE."
+    x = NULL, y = "Index (Q1 2018 = 1x)",
+    caption = "Source: TCMB EVDS (USD/TRY); TCMB KFE."
   ) +
   theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7))
 ```
-
-The two series track closely — exchange rate acceleration consistently **leads or
-coincides with KFE acceleration**. The 2021 Q4 TRY collapse (from ~8.5 to 13+ USD/TRY)
-directly preceded the 2022 nominal KFE explosion of ~183% YoY.
 
 ### 4.2 YoY change correlation
 
 ```{r fx-correlation, fig.height=4}
 exchange_housing |>
   filter(!is.na(kfe_yoy_pct)) |>
-  mutate(
-    usdtry_yoy = (usdtry / lag(usdtry, 4) - 1) * 100
-  ) |>
+  mutate(usdtry_yoy = (usdtry / lag(usdtry, 4) - 1) * 100) |>
   filter(!is.na(usdtry_yoy)) |>
   ggplot(aes(usdtry_yoy, kfe_yoy_pct)) +
   geom_point(aes(colour = factor(year)), size = 3) +
@@ -365,20 +358,22 @@ exchange_housing |>
   scale_x_continuous(labels = label_percent(scale = 1)) +
   scale_y_continuous(labels = label_percent(scale = 1)) +
   labs(
-    title    = "USD/TRY annual change vs. KFE annual change — quarterly data 2019–2024",
+    title   = "USD/TRY annual change vs. KFE annual change, quarterly 2019-2024",
     subtitle = "Strong positive correlation: currency depreciation feeds into housing prices",
     x = "USD/TRY YoY change (%)", y = "KFE nominal YoY change (%)",
-    caption  = "Source: TCMB EVDS; TCMB KFE. Each point = one quarter."
+    caption = "Source: TCMB EVDS; TCMB KFE. Each point = one quarter."
   )
 ```
 
-### 4.3 Real vs. nominal KFE growth — separating inflation premium
+### 4.3 Real vs. nominal KFE growth
 
 ```{r real-premium, fig.height=4}
 exchange_housing |>
   filter(!is.na(kfe_yoy_pct)) |>
-  select(period, year, `Nominal KFE YoY` = kfe_yoy_pct,
-         `CPI YoY` = cpi_yoy_pct, `Real KFE YoY` = kfe_real_yoy_pct) |>
+  select(period, year,
+         `Nominal KFE YoY` = kfe_yoy_pct,
+         `CPI YoY`         = cpi_yoy_pct,
+         `Real KFE YoY`    = kfe_real_yoy_pct) |>
   pivot_longer(-c(period, year), names_to = "series", values_to = "pct") |>
   ggplot(aes(period, pct, colour = series, group = series)) +
   geom_line(linewidth = 0.9) +
@@ -390,25 +385,26 @@ exchange_housing |>
   ) +
   scale_y_continuous(labels = label_percent(scale = 1)) +
   labs(
-    title    = "Nominal KFE, CPI, and real KFE change — quarterly, 2019–2024",
+    title   = "Nominal KFE, CPI, and real KFE change, quarterly 2019-2024",
     subtitle = "Real KFE has been negative in most quarters since Q3 2022",
     x = NULL, y = "YoY change (%)",
-    caption  = "Source: TCMB KFE; TURKSTAT CPI."
+    caption = "Source: TCMB KFE; TURKSTAT CPI."
   ) +
   theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7))
 ```
 
 ---
 
-## 5. Supply-Side: Sales and Building Permits
+## 5. Supply Side: Sales and Building Permits
 
-### 5.1 Housing sales — total and by type
+### 5.1 Housing sales by type
 
 ```{r sales-trend, fig.height=4.5}
 sales_permits |>
-  select(year, `Total sales` = sales_total,
-         `First-hand` = sales_first_hand,
-         `Second-hand` = sales_second_hand) |>
+  select(year,
+         `Total sales`  = sales_total,
+         `First-hand`   = sales_first_hand,
+         `Second-hand`  = sales_second_hand) |>
   filter(year >= 2015) |>
   pivot_longer(-year, names_to = "type", values_to = "count") |>
   filter(!is.na(count)) |>
@@ -422,24 +418,25 @@ sales_permits |>
   scale_x_continuous(breaks = 2015:2024) +
   scale_y_continuous(labels = comma) +
   labs(
-    title    = "Housing sales by type, 2015–2024",
+    title   = "Housing sales by type, 2015-2024",
     subtitle = "Total sales peaked in 2020 (credit stimulus) and have since declined",
     x = NULL, y = "Number of units sold",
-    caption  = "Source: TÜİK İnşaat ve Konut İstatistikleri."
+    caption = "Source: TUIK Insaat ve Konut Istatistikleri."
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-Sales peaked in **2020** at 1.5 million units, boosted by the government's subsidised
-mortgage campaign (June 2020). Since then, rising prices and tightening credit have
-driven sales down to **1.07 million** in 2024 — the lowest since 2010.
+Sales peaked in 2020 at 1.5 million units, boosted by the government's
+subsidised mortgage campaign. Since then, rising prices and tightening credit
+have driven sales down to 1.07 million in 2024 -- the lowest since 2010.
 
-### 5.2 Building permits — the supply pipeline
+### 5.2 Building permits: the supply pipeline
 
 ```{r permits-trend, fig.height=4}
 sales_permits |>
-  select(year, `Building permits (units)` = permits_residential_units,
-         `Total sales` = sales_total) |>
+  select(year,
+         `Building permits (units)` = permits_residential_units,
+         `Total sales`              = sales_total) |>
   pivot_longer(-year, names_to = "series", values_to = "value") |>
   ggplot(aes(year, value, colour = series)) +
   geom_line(linewidth = 1.1) +
@@ -448,58 +445,60 @@ sales_permits |>
   scale_x_continuous(breaks = 2010:2024) +
   scale_y_continuous(labels = comma) +
   labs(
-    title    = "Building permits vs. housing sales, 2010–2024",
-    subtitle = "Supply pipeline (permits) halved from 2015 peak — structural undersupply ahead",
+    title   = "Building permits vs. housing sales, 2010-2024",
+    subtitle = "Supply pipeline halved from 2015 peak -- structural undersupply ahead",
     x = NULL, y = "Number of units",
-    caption  = "Source: TÜİK İnşaat ve Konut İstatistikleri."
+    caption = "Source: TUIK Insaat ve Konut Istatistikleri."
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-Building permits — the leading indicator of future supply — fell from **1.22 million
-units** in 2015 to **549,000** in 2024, a **55% decline**. Given the 2–4 year lag
-between permit issuance and delivery, this signals a structural supply shortfall through
-at least 2026–2027, which will continue to support nominal prices despite real declines.
+Building permits fell from 1.22 million units in 2015 to 549,000 in 2024, a
+55% decline. Given the 2-4 year lag between permit issuance and delivery,
+this signals structural supply shortfall through at least 2026-2027.
 
-### 5.3 Interactive full data table
+### 5.3 Interactive data table
 
 ```{r sales-dt}
 sales_permits |>
   mutate(
-    sales_total       = comma(sales_total),
+    sales_total               = comma(sales_total),
     permits_residential_units = comma(permits_residential_units),
-    second_hand_share = paste0(round(second_hand_share, 1), "%"),
-    mortgage_share    = ifelse(is.na(mortgage_share), "—",
-                               paste0(round(mortgage_share, 1), "%"))
+    second_hand_share         = ifelse(is.na(second_hand_share), "--",
+                                       paste0(round(second_hand_share, 1), "%")),
+    mortgage_share            = ifelse(is.na(mortgage_share), "--",
+                                       paste0(round(mortgage_share, 1), "%"))
   ) |>
   select(year, sales_total, permits_residential_units,
          second_hand_share, mortgage_share, sales_foreign) |>
-  datatable(rownames = FALSE, filter = "top",
-            options  = list(pageLength = 15, dom = "ftp"),
-            caption  = "Annual housing market supply-demand indicators, 2010–2024")
+  datatable(
+    rownames = FALSE,
+    filter   = "top",
+    options  = list(pageLength = 15, dom = "ftp"),
+    caption  = "Annual housing market supply-demand indicators, 2010-2024"
+  )
 ```
 
 ---
 
 ## Conclusions
 
-Four structural findings emerge from this analysis:
+Four structural findings emerge:
 
-1. **The Turkish housing boom is largely nominal, not real.** KFE rose ~48× nominally
-   but only ~18% in real terms since 2010, and that real gain has partially reversed
-   since 2022. Buyers in 2021–2023 effectively paid an inflation premium.
+1. **The Turkish housing boom is largely nominal, not real.** KFE rose ~48x
+   nominally but only ~18% in real terms since 2010, and that real gain has
+   partially reversed since 2022.
 
-2. **Affordability has collapsed to crisis levels.** The 3× worsening in the
-   months-of-minimum-wage metric is structural, not cyclical — it reflects a decade
-   of supply under-investment coinciding with income growth that could not keep pace
-   with price inflation or currency depreciation.
+2. **Affordability has collapsed to crisis levels.** The 3x worsening in the
+   months-of-minimum-wage metric is structural -- it reflects a decade of
+   supply under-investment coinciding with income growth that could not keep
+   pace with price inflation or currency depreciation.
 
 3. **Exchange rate risk is the dominant driver.** The pass-through from USD/TRY
-   depreciation to nominal housing prices is rapid and strong — Turkish housing has
-   effectively acted as a partial inflation hedge in lira terms, drawing in domestic
-   savings as a store of value.
+   depreciation to nominal housing prices is rapid and strong. Turkish housing
+   has effectively acted as a partial inflation hedge in lira terms.
 
-4. **The supply pipeline threatens prolonged undersupply.** The 55% fall in building
-   permits since 2015, combined with post-earthquake relocation demand, means structural
-   supply constraints will persist even if nominal price growth slows further. True
-   affordability improvement requires both price cooling and a supply-side policy response.
+4. **The supply pipeline threatens prolonged undersupply.** The 55% fall in
+   building permits since 2015, combined with post-earthquake relocation demand,
+   means structural supply constraints will persist even if nominal price growth
+   slows further.

@@ -1,24 +1,24 @@
 ---
-<<<<<<< HEAD
 title: "Turkish Housing Market"
-subtitle: "Nominal Growth, Real Losses, and Affordability — 2010–2024"
+subtitle: "Nominal Growth, Real Losses, and Affordability 2010-2024"
 author:
-  - name: "Arda Tüylüoğlu"
+  - name: "Arda Tuyluoglu"
     url: https://github.com/KULLANICI_ADI_ARDA
-  - name: "İlhan Emre Can"
+  - name: "Ilhan Emre Can"
     url: https://github.com/KULLANICI_ADI_ILHAN
-  - name: "Kayra Yaltırık"
+  - name: "Kayra Yaltirik"
     url: https://github.com/KULLANICI_ADI_KAYRA
 date: today
-=======
-title: "Team Sansasyonel"
-sidebar: false 
->>>>>>> 3ecdf6adb105d58800add93ed8e4cdfa3502a3f5
 ---
 
-This is our project webpage.
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(knitr)
+library(tidyr)
+library(DT)
 
-<<<<<<< HEAD
 load("data/housing_market_tr.RData")
 
 pal <- list(
@@ -47,68 +47,55 @@ theme_set(
     )
 )
 ```
-=======
-Please stay tuned to follow our project activities.
 
-This is our template.
+## Project Overview
 
-# Team Members
->>>>>>> 3ecdf6adb105d58800add93ed8e4cdfa3502a3f5
+Turkey has experienced one of the world's most dramatic housing price surges
+in recent years, driven by high inflation, sharp currency depreciation,
+post-earthquake demand shocks, and structural supply constraints.
+Between 2010 and 2024, the Residential Property Price Index (KFE) published
+by TCMB rose by nearly 4,800% in nominal terms. After adjusting for
+inflation, the real gain is far more modest and has recently turned negative.
 
-1.  Kayra Yaltr??k
-https://emu-hacettepe-analytics.github.io/emu430-spring2026-kayrayltrk/
+This project investigates the Turkish housing market through four questions:
 
-<<<<<<< HEAD
-Turkey has experienced one of the world's most dramatic housing price surges in recent
-years — driven by high inflation, sharp currency depreciation, post-earthquake demand
-shocks, and structural supply constraints. Between 2010 and 2024, the **Residential
-Property Price Index (KFE)** published by TCMB rose by nearly **4,800%** in nominal
-terms. Yet once adjusted for inflation, the real gain is far more modest — and in
-recent years has turned negative.
+1. How have housing prices evolved nominally vs. in real (inflation-adjusted)
+   terms since 2010?
+2. Which regions have experienced the most extreme price growth?
+3. How has housing affordability changed, measured by the m2 price-to-minimum
+   wage ratio?
+4. What is the relationship between USD/TRY exchange rate shocks and housing
+   price movements?
 
-This project investigates the Turkish housing market through four lenses:
+Explore the full analysis on the [Analysis](analysis.qmd) page and dataset
+details on the [Data](data.qmd) page.
 
-1. How have housing prices evolved **nominally vs. in real (inflation-adjusted) terms** since 2010?
-2. Which **regions** have experienced the most extreme price growth, and what patterns emerge geographically?
-3. How has **housing affordability** changed — measured by the m² price-to-minimum wage ratio?
-4. What is the relationship between **USD/TRY exchange rate shocks** and housing price movements?
-=======
-2.  ??lhan Emre Can https://emu-hacettepe-analytics.github.io/emu430-spring2026-ilhanemrecan/
+---
 
-3.  Arda Tuyluoglu
-https://emu-hacettepe-analytics.github.io/emu430-spring2026-ardatuyluoglulab/
->>>>>>> 3ecdf6adb105d58800add93ed8e4cdfa3502a3f5
-
-
-# Project Topic
-
-<<<<<<< HEAD
 ## 2024 Snapshot
 
 ```{r topline}
 latest  <- kfe_annual |> filter(year == 2024)
 prev    <- kfe_annual |> filter(year == 2023)
-base    <- kfe_annual |> filter(year == 2010)
 aff_now <- affordability |> filter(year == 2024)
-aff_10  <- affordability |> filter(year == 2010)
 
 tibble::tibble(
   Indicator = c(
     "Nominal KFE (2010 = 100)",
     "Real KFE (2010 = 100)",
-    "Nominal KFE — YoY change",
-    "Real KFE — YoY change",
-    "Average m² price (TRY)",
-    "Average m² price (USD)",
-    "Months of min. wage for 100 m²"
+    "Nominal KFE YoY change",
+    "Real KFE YoY change",
+    "Average m2 price (TRY)",
+    "Average m2 price (USD)",
+    "Months of min. wage for 100 m2"
   ),
   Value = c(
     comma(round(latest$kfe_nominal, 1)),
     comma(round(latest$kfe_real, 1)),
     paste0(round(latest$kfe_nominal_yoy, 1), "%"),
     paste0(round(latest$kfe_real_yoy, 1), "%"),
-    paste0("₺", comma(aff_now$avg_m2_price_try)),
-    paste0("$", comma(aff_now$avg_m2_price_usd)),
+    paste0("TRY ", comma(aff_now$avg_m2_price_try)),
+    paste0("USD ", comma(aff_now$avg_m2_price_usd)),
     round(aff_now$affordability_months, 0)
   )
 ) |>
@@ -122,27 +109,23 @@ tibble::tibble(
 ::: {.callout-note icon="false"}
 ### Summary of Findings
 
-- **Nominal surge, real stagnation.** The KFE rose ~4,800% in nominal terms from 2010
-  to 2024. After adjusting for CPI, the real index peaked in **2022 at 153.7** then
-  fell back — in 2024 real prices were below the 2021 peak, meaning buyers largely paid
-  an inflation premium, not a true wealth gain.
+- **Nominal surge, real stagnation.** KFE rose ~4,800% in nominal terms from
+  2010 to 2024. After adjusting for CPI, the real index peaked in 2022 at
+  153.7 then fell back to 118.4 by 2024. Buyers largely paid an inflation
+  premium, not a true wealth gain.
 
-- **The affordability crisis is structural.** In 2010, a 100 m² flat cost ~103 monthly
-  minimum wages. By 2023 this had risen to **~330 months** — a 3× worsening. USD-priced
-  affordability also deteriorated sharply as the lira depreciated.
+- **Affordability crisis.** In 2010, a 100 m2 flat cost ~103 monthly minimum
+  wages. By 2023 this rose to ~330 months -- a 3x worsening in 13 years.
 
-- **Exchange rate shocks transmit rapidly.** The 2018 currency crisis (+60% USD/TRY in
-  one year) and the 2021–22 depreciation episode (+87%) both preceded or coincided with
-  the sharpest nominal KFE increases — suggesting a strong pass-through effect.
+- **Exchange rate pass-through.** The 2018 currency crisis (+60% USD/TRY) and
+  the 2021-22 depreciation (+87%) both preceded the sharpest nominal KFE
+  increases. Correlation between quarterly FX and KFE changes exceeds 0.70.
 
-- **Istanbul and Aegean lead, Southeast lags.** The five-year (2020–2024) cumulative
-  KFE increase ranged from ~21× in the Aegean to ~14× in Southeast Anatolia — a 1.5×
-  geographic spread in nominal terms.
+- **Istanbul and Aegean lead, Southeast lags.** Five-year cumulative nominal
+  KFE gain (2020-2024) ranges from ~2,070% in the Aegean to ~1,420% in
+  Southeast Anatolia.
 
-- **Supply is contracting.** Building permits peaked at 1.2 million units in 2015 and
-  fell to ~549,000 in 2024. This structural supply decline, combined with post-earthquake
-  displacement demand, is reinforcing price pressure.
+- **Supply is in structural decline.** Building permits fell from 1.22 million
+  units in 2015 to 549,000 in 2024 -- a 55% drop that signals undersupply
+  through at least 2026-2027.
 :::
-=======
-# Data Set
->>>>>>> 3ecdf6adb105d58800add93ed8e4cdfa3502a3f5

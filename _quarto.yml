@@ -4,7 +4,7 @@ project:
 
 website:
   title: "Sansasyonel"
-  description: "Turkish Housing Market Analysis, 2010–2024"
+  description: "Turkish Housing Market Analysis, 2010-2024"
   navbar:
     background: dark
     foreground: light
@@ -17,9 +17,7 @@ website:
       - href: analysis.qmd
         text: Analysis
   page-footer:
-    center: |
-      Sansasyonel &nbsp;·&nbsp; EMU430 Data Analytics &nbsp;·&nbsp;
-      Hacettepe University &nbsp;·&nbsp; Spring 2025–2026
+    center: "Sansasyonel | EMU430 Data Analytics | Hacettepe University | Spring 2025-2026"
 
 format:
   html:
@@ -30,7 +28,7 @@ format:
     toc-depth: 3
     toc-title: "Contents"
     code-fold: true
-    code-summary: "▶ Show code"
+    code-summary: "Show code"
     code-tools: true
     fig-width: 9
     fig-height: 5
