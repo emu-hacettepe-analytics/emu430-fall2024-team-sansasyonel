@@ -1,5 +1,5 @@
 ---
-title: "Team XXX"
+title: "Team Sansasyonel"
 sidebar: false 
 ---
 
@@ -11,13 +11,12 @@ This is our template.
 
 # Team Members
 
-1.  [Edin_Džeko](https://tr.wikipedia.org/wiki/Edin_D%C5%BEeko)
+1.  Kayra Yaltırık https://emu-hacettepe-analytics.github.io/emu430-spring2026-kayrayltrk/
 
-2.  [Dušan Tadić](https://tr.wikipedia.org/wiki/Du%C5%A1an_Tadi%C4%87)
+2.  İlhan Emre Can https://emu-hacettepe-analytics.github.io/emu430-spring2026-ilhanemrecan/
 
-3.  [Frederico Rodrigues de Paula Santos](https://tr.wikipedia.org/wiki/Fred_(1993_do%C4%9Fumlu_futbolcu))
+3.  Arda Tüylüoğlu https://emu-hacettepe-analytics.github.io/emu430-spring2026-ardatuyluoglulab/
 
-4.  [Sebastian Szymański](https://tr.wikipedia.org/wiki/Sebastian_Szyma%C5%84ski)
 
 # Project Topic
 
