@@ -4,7 +4,7 @@ project:
 
 website:
   title: "Sansasyonel"
-  description: "Road Traffic Accidents in Türkiye, 2015–2024"
+  description: "Turkish Housing Market Analysis, 2010–2024"
   navbar:
     background: dark
     foreground: light
@@ -37,7 +37,6 @@ format:
     fig-align: center
     df-print: paged
     smooth-scroll: true
-    html-math-method: katex
 
 execute:
   warning: false

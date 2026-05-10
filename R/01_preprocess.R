@@ -1,15 +1,15 @@
 # =============================================================================
 # Sansasyonel · EMU430 Data Analytics
-# R/01_preprocess.R
+# R/01_preprocess.R  —  Konut Piyasası Projesi
 #
 # Kullanım:
-#   1. RStudio'da proje kök klasörünü aç
-#   2. Console'da: source("R/01_preprocess.R")
+#   setwd("sansasyonel/")
+#   source("R/01_preprocess.R")
 #
 # Kaynaklar:
-#   TÜİK 2024: https://data.tuik.gov.tr/Bulten/Index?p=Road-Traffic-Accident-Statistics-2024-54056
-#   KGM  2024: https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/Trafik-kaza-ozetbilgi.pdf
-#   EGM      : https://www.trafik.gov.tr/istatistikler37
+#   [1] TCMB KFE: https://www.tcmb.gov.tr (Konut Fiyat Endeksi, aylık)
+#   [2] TCMB EVDS (CPI, Kur): https://evds2.tcmb.gov.tr
+#   [3] TÜİK Konut İstatistikleri: https://data.tuik.gov.tr/Kategori/GetKategori?p=insaat-ve-konut-116
 # =============================================================================
 
 library(readr)
@@ -18,76 +18,74 @@ library(dplyr)
 cat("── Preprocessing başlıyor ──────────────────────────────\n")
 
 read_raw <- function(f) {
-  readr::read_csv(
-    file.path("data", f),
-    show_col_types = FALSE,
-    locale         = locale(encoding = "UTF-8")
-  )
+  readr::read_csv(file.path("data", f),
+                  show_col_types = FALSE,
+                  locale = locale(encoding = "UTF-8"))
 }
 
-# 1. Yıllık seri 2015–2024
-annual <- read_raw("raw_annual_2015_2024.csv") |>
+# ── 1. Yıllık KFE + makro seri 2010–2024 ─────────────────────────────────────
+kfe_annual <- read_raw("raw_kfe_annual.csv") |>
   mutate(
-    fatal_injury_share  = fatal_injury_accidents / total_accidents,
-    deaths_per_accident = deaths_total / fatal_injury_accidents
+    # Nominal KFE değişimi (yıllık %)
+    kfe_nominal_yoy = (kfe_nominal / lag(kfe_nominal) - 1) * 100,
+    # Reel KFE değişimi (yıllık %)
+    kfe_real_yoy    = (kfe_real    / lag(kfe_real)    - 1) * 100,
+    # CPI değişimi (yıllık %)
+    cpi_yoy         = (cpi_index   / lag(cpi_index)   - 1) * 100,
+    # Kümülatif kazanç 2010=1
+    kfe_cumulative  = kfe_nominal / 100,
+    # Reel endeksi normalize (2010=100)
+    kfe_real_norm   = kfe_real
   )
-cat("  ✓ annual          :", nrow(annual), "satır\n")
+cat("  ✓ kfe_annual       :", nrow(kfe_annual), "satır\n")
 
-# 2. Kusur oranları 2015–2024
-fault_pct <- read_raw("raw_fault_pct_2015_2024.csv")
-cat("  ✓ fault_pct       :", nrow(fault_pct), "satır\n")
-
-# 3. Araç türleri 2024
-vehicles <- read_raw("raw_vehicle_type_2024.csv") |>
-  mutate(deaths_per_1000_involved = 1000 * driver_deaths_total / vehicles_involved)
-cat("  ✓ vehicles        :", nrow(vehicles), "satır\n")
-
-# 4. Normalize edilmiş oranlar 2015–2024
-rates <- read_raw("raw_rates_2015_2024.csv")
-cat("  ✓ rates           :", nrow(rates), "satır\n")
-
-# 5. Aylık dağılım 2024
-monthly <- read_raw("raw_monthly_2024.csv") |>
-  mutate(severity_index = deaths / accidents * 100)
-cat("  ✓ monthly         :", nrow(monthly), "satır\n")
-
-# 6. Haftanın günleri 2024
-weekday <- read_raw("raw_dayofweek_2024.csv") |>
-  mutate(severity_index = deaths / accidents * 100)
-cat("  ✓ weekday         :", nrow(weekday), "satır\n")
-
-# 7. Işık koşulları 2024
-daylight <- read_raw("raw_daylight_2024.csv") |>
-  mutate(severity_index = deaths / accidents * 100)
-cat("  ✓ daylight        :", nrow(daylight), "satır\n")
-
-# 8. Sürücü kusur türleri 2024
-driver_faults <- read_raw("raw_driver_faults_2024.csv")
-cat("  ✓ driver_faults   :", nrow(driver_faults), "satır\n")
-
-# 9. Kaza oluşum türleri 2024
-accident_types <- read_raw("raw_accident_type_2024.csv") |>
+# ── 2. Bölgesel KFE (NUTS-1) ─────────────────────────────────────────────────
+regional_kfe <- read_raw("raw_regional_kfe.csv") |>
+  # Bölgeye göre ortalama yıllık değişim (2020-2024 ortalaması)
   mutate(
-    fatality_rate_pct        = deaths  / accidents * 100,
-    injury_rate_per_accident = injured / accidents
+    avg_annual_pct = (kfe_2020_pct + kfe_2021_pct + kfe_2022_pct +
+                      kfe_2023_pct + kfe_2024_pct) / 5,
+    # 2021 kümülatif nominal (2020 bazlı yaklaşık)
+    cumulative_2020_2024 = (1 + kfe_2020_pct/100) *
+                           (1 + kfe_2021_pct/100) *
+                           (1 + kfe_2022_pct/100) *
+                           (1 + kfe_2023_pct/100) *
+                           (1 + kfe_2024_pct/100) - 1
+  ) |>
+  mutate(cumulative_2020_2024_pct = cumulative_2020_2024 * 100)
+cat("  ✓ regional_kfe     :", nrow(regional_kfe), "satır\n")
+
+# ── 3. Konut erişilebilirliği ─────────────────────────────────────────────────
+affordability <- read_raw("raw_affordability.csv") |>
+  mutate(
+    # Ortalama bir 100 m² konut almak için gereken asgari ücret miktarı (ay)
+    months_100m2 = affordability_months,
+    # USD cinsinden m² fiyatı
+    m2_usd = avg_m2_price_usd
   )
-cat("  ✓ accident_types  :", nrow(accident_types), "satır\n")
+cat("  ✓ affordability    :", nrow(affordability), "satır\n")
 
-# 10. AB ülkeleri karşılaştırması 2024
-eu_comparison <- read_raw("raw_eu_comparison_2024.csv")
-cat("  ✓ eu_comparison   :", nrow(eu_comparison), "satır\n")
+# ── 4. Kur–Konut ilişkisi (çeyreklik) ────────────────────────────────────────
+exchange_housing <- read_raw("raw_exchange_housing.csv") |>
+  mutate(
+    period     = paste0(year, " ", quarter),
+    real_premium = kfe_yoy_pct - cpi_yoy_pct   # reel fiyat değişimi
+  )
+cat("  ✓ exchange_housing :", nrow(exchange_housing), "satır\n")
 
-# 11. Yerleşim yeri / dışı 2024
-settlement <- read_raw("raw_settlement_2024.csv") |>
-  mutate(deaths_per_1000_accidents = 1000 * deaths_total / fatal_injury_accidents)
-cat("  ✓ settlement      :", nrow(settlement), "satır\n")
+# ── 5. Satışlar ve yapı ruhsatları ───────────────────────────────────────────
+sales_permits <- read_raw("raw_sales_permits.csv") |>
+  mutate(
+    second_hand_share = sales_second_hand / sales_total * 100,
+    mortgage_share    = sales_mortgage    / sales_total * 100
+  )
+cat("  ✓ sales_permits    :", nrow(sales_permits), "satır\n")
 
-# Kaydet
-save(
-  annual, fault_pct, vehicles, rates,
-  monthly, weekday, daylight,
-  driver_faults, accident_types, eu_comparison, settlement,
-  file = "data/traffic_accidents_tr.RData"
-)
+# ── Kaydet ───────────────────────────────────────────────────────────────────
+save(kfe_annual, regional_kfe, affordability,
+     exchange_housing, sales_permits,
+     file = "data/housing_market_tr.RData")
 
-cat("\n✅ Kaydedildi → data/traffic_accidents_tr.RData\n")
+cat("\n✅ Kaydedildi → data/housing_market_tr.RData\n")
+cat("   Objeler: kfe_annual, regional_kfe, affordability,\n")
+cat("            exchange_housing, sales_permits\n")

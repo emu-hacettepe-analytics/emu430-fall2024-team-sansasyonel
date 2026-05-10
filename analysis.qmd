@@ -1,6 +1,6 @@
 ---
 title: "Analysis"
-subtitle: "A decade of road traffic risk in Türkiye, 2015–2024"
+subtitle: "Nominal Surge, Real Stagnation, and the Affordability Crisis — 2010–2024"
 ---
 
 ```{r setup, include=FALSE}
@@ -13,7 +13,7 @@ library(forcats)
 library(stringr)
 library(DT)
 
-load("data/traffic_accidents_tr.RData")
+load("data/housing_market_tr.RData")
 
 pal <- list(
   primary   = "#1a1814",
@@ -45,470 +45,461 @@ theme_set(
 ::: {.callout-note icon="false"}
 ### Key Takeaways
 
-- **Volume up, per-vehicle risk down.** Total accidents rose 46% (2015→2024) while
-  deaths per 100,000 vehicles fell from 37.7 to 20.3.
-- **2020 broke the trend.** Pandemic restrictions cut deaths to 4,866 (decade low);
-  by 2023 both accidents and deaths overshot pre-pandemic levels.
-- **Risk is concentrated.** Driver fault: ~88–90% of causes every year. Top single
-  error: speed-related (40.8% of driver faults). Motorcycles: 31.5% of involvements,
-  40.0% of driver deaths.
-- **Urban ≠ most dangerous.** 86% of fatal/injury accidents are in cities but only
-  56% of deaths — rural fatality risk per crash is ~4× higher.
-- **Türkiye is a European outlier.** ~74 deaths per million population vs. EU-27
-  average of ~47.
+- **Nominal surge, real stagnation.** KFE rose ~4,800% nominally (2010–2024); in real
+  terms the index peaked at 153.7 in 2022 and fell back to 118.4 by 2024, suggesting
+  the surge was largely inflation-driven.
+- **Affordability collapsed.** The months-of-minimum-wage needed to buy 100 m² rose
+  from ~103 in 2010 to ~330 in 2023 — a 3× worsening in a decade.
+- **Exchange rate shocks transmit into housing prices.** Quarterly correlations between
+  USD/TRY change and KFE change exceed 0.70 — currency depreciation episodes directly
+  precede or accompany the sharpest price spikes.
+- **Istanbul and Aegean lead, Southeast lags.** Five-year cumulative nominal gains
+  range from ~2,000% (Aegean) to ~1,400% (Southeast Anatolia).
+- **Supply is in structural decline.** Building permits halved from 2015 peak to 2024,
+  compressing supply just as demand surged post-earthquake.
 :::
 
 ---
 
-## 1. Trend Analysis, 2015–2024
+## 1. Nominal vs. Real Price Evolution
 
-### 1.1 Headline indicators
+### 1.1 The two stories of Turkish housing prices
 
-```{r trend-facet, fig.height=5.5}
-annual |>
-  select(year, total_accidents, fatal_injury_accidents, deaths_total, injured) |>
-  pivot_longer(-year, names_to = "metric", values_to = "value") |>
-  mutate(metric = recode(metric,
-    total_accidents        = "Total accidents",
-    fatal_injury_accidents = "Fatal/injury accidents",
-    deaths_total           = "Deaths",
-    injured                = "Injured"
-  )) |>
-  ggplot(aes(year, value)) +
-  geom_line(colour = pal$primary, linewidth = 0.9) +
-  geom_point(colour = pal$accent, size = 2.2) +
-  facet_wrap(~ metric, scales = "free_y", ncol = 2) +
-  scale_y_continuous(labels = comma) +
-  scale_x_continuous(breaks = 2015:2024) +
-  labs(
-    title    = "Headline trends, 2015–2024",
-    subtitle = "Each panel has its own y-axis — shape reveals the story, not absolute values",
-    x = NULL, y = NULL,
-    caption  = "Source: TÜİK Road Traffic Accident Statistics, 2015–2024."
-  ) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-All four indicators fell sharply in 2020 then rebounded. The key asymmetry:
-**deaths grew more slowly than accidents**, reflecting safer outcomes per crash
-through better vehicle safety, faster emergency response, and road improvements.
-
-### 1.2 Normalised fatality rates
-
-```{r rates-plot, fig.height=4}
-rates |>
-  select(year,
-         `Per 100k population` = deaths_per_100k_population,
-         `Per 100k vehicles`   = deaths_per_100k_vehicles) |>
-  pivot_longer(-year, names_to = "metric", values_to = "value") |>
-  ggplot(aes(year, value, colour = metric)) +
-  geom_line(linewidth = 1.1) +
+```{r nominal-vs-real, fig.height=4.5}
+kfe_annual |>
+  select(year, `Nominal KFE` = kfe_nominal, `Real KFE` = kfe_real) |>
+  pivot_longer(-year, names_to = "series", values_to = "value") |>
+  ggplot(aes(year, value, colour = series, linetype = series)) +
+  geom_line(linewidth = 1.2) +
   geom_point(size = 2.5) +
   scale_colour_manual(values = c(pal$accent, pal$secondary), name = NULL) +
-  scale_x_continuous(breaks = 2015:2024) +
-  labs(
-    title    = "Fatality rates normalised for exposure, 2015–2024",
-    subtitle = "Both series trend downward — Türkiye is getting safer per vehicle driven",
-    x = NULL, y = "Deaths",
-    caption  = "Source: TÜİK. 2024 vehicle-km not yet published."
-  ) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-Per-vehicle fatalities fell **46%** (37.7 → 20.3). Per-capita fell **23%** (9.6 → 7.4).
-The larger per-vehicle improvement reflects that the fleet grew faster than the
-population, so each car is becoming safer faster than overall mortality risk is falling.
-
-### 1.3 Fleet growth vs. deaths — decoupling
-
-```{r decoupling, fig.height=4.2}
-ggplot(annual, aes(registered_vehicles / 1e6, deaths_total)) +
-  geom_path(colour = pal$muted, linewidth = 0.8,
-            arrow = arrow(length = unit(0.2, "cm"), type = "closed")) +
-  geom_point(aes(colour = year == 2020), size = 3) +
-  geom_text(aes(label = year), vjust = -1.1, size = 3, colour = pal$primary) +
-  scale_colour_manual(
-    values = c(`FALSE` = pal$secondary, `TRUE` = pal$accent),
-    guide  = "none"
-  ) +
-  scale_x_continuous(labels = label_number(suffix = "M")) +
+  scale_linetype_manual(values = c("solid", "dashed"), name = NULL) +
+  scale_x_continuous(breaks = 2010:2024) +
   scale_y_continuous(labels = comma) +
   labs(
-    title    = "More vehicles, fewer deaths — a decade of decoupling",
-    subtitle = "Arrow traces 2015 → 2024; red point = 2020 pandemic outlier",
-    x = "Registered vehicles", y = "Deaths",
-    caption  = "Source: TÜİK."
-  )
-```
-
-The path arcs **down and to the right** — the classic signature of a system gaining
-safety per unit of exposure. Every year (except the post-2020 rebound) sits lower
-on the y-axis than the same fleet-size point would have in an earlier year.
-
----
-
-## 2. Causal Factors
-
-### 2.1 Driver vs. other causes over time
-
-```{r fault-time, fig.height=4}
-fault_pct |>
-  pivot_longer(-year, names_to = "factor", values_to = "share") |>
-  mutate(factor = recode(factor,
-    driver_pct     = "Driver",
-    pedestrian_pct = "Pedestrian",
-    passenger_pct  = "Passenger",
-    vehicle_pct    = "Vehicle defect",
-    road_pct       = "Road defect"
-  )) |>
-  filter(factor != "Driver") |>
-  ggplot(aes(year, share, colour = factor)) +
-  geom_line(linewidth = 1) +
-  geom_point(size = 2) +
-  scale_colour_manual(
-    values = c(pal$accent, pal$good, pal$warn, pal$secondary),
-    name   = NULL
-  ) +
-  scale_x_continuous(breaks = 2015:2024) +
-  scale_y_continuous(labels = label_percent(scale = 1)) +
-  labs(
-    title    = "Non-driver causes, 2015–2024",
-    subtitle = "Driver fault (86–90% each year) is excluded so smaller categories are readable",
-    x = NULL, y = "Share of attributable causes",
-    caption  = "Source: KGM 2024, Tablo 1.3."
+    title    = "Nominal vs. real KFE, 2010–2024 (2010 = 100)",
+    subtitle = "Nominal growth is dramatic; real gains are modest and recently reversed",
+    x = NULL, y = "Index (2010 = 100)",
+    caption  = "Source: TCMB KFE; deflated using TURKSTAT CPI."
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-Driver error is dominant and remarkably stable at 86–90% every year. Road defects
-are minor and falling, consistent with continued infrastructure investment.
+The two lines tell a strikingly different story. While the **nominal index** rose
+~48× from 2010 to 2024, the **real index** peaked at 153.7 in 2022 — just 54% above
+its 2010 level — before declining. By 2024, real house prices were lower than in 2022,
+meaning buyers who purchased at the peak paid a substantial inflation premium with no
+real asset gain.
 
-### 2.2 Top driver errors in 2024
+### 1.2 Annual change rates
 
-```{r driver-errors, fig.height=5}
-driver_faults |>
-  arrange(desc(fault_count)) |>
-  slice_head(n = 10) |>
-  mutate(
-    label = str_wrap(fault_type, 48),
-    label = fct_reorder(label, fault_count)
-  ) |>
-  ggplot(aes(fault_count, label)) +
-  geom_col(fill = pal$secondary) +
-  geom_text(
-    aes(label = paste0(comma(fault_count), "  (", fault_pct, "%)")),
-    hjust = -0.05, size = 2.9
-  ) +
-  scale_x_continuous(labels = comma, expand = expansion(mult = c(0, 0.3))) +
-  labs(
-    title    = "Top 10 driver-error categories, 2024",
-    subtitle = "KGM road network — 61,459 attributable driver faults total",
-    x = "Fault count", y = NULL,
-    caption  = "Source: KGM 2024, Tablo 2.12."
-  )
-```
-
-The top three errors — speeding (40.8%), lane violations (17.9%), rear-end (15.5%) —
-together explain **74%** of attributable driver faults. Enforcement concentrated on
-these three behaviours could address a large share of the burden efficiently.
-
----
-
-## 3. Vehicle Type Risk
-
-### 3.1 Involvement vs. deaths
-
-```{r vehicle-disproportion, fig.height=5}
-vehicles |>
-  filter(vehicles_involved >= 1000) |>
-  mutate(vehicle_type = fct_reorder(vehicle_type, vehicles_involved)) |>
-  select(vehicle_type,
-         `Vehicles involved %` = vehicles_pct,
-         `Driver deaths %`     = deaths_pct,
-         `Injured drivers %`   = injured_pct) |>
-  pivot_longer(-vehicle_type) |>
-  ggplot(aes(value, vehicle_type, fill = name)) +
-  geom_col(position = position_dodge(width = 0.8), width = 0.75) +
+```{r yoy-change, fig.height=4}
+kfe_annual |>
+  filter(!is.na(kfe_nominal_yoy)) |>
+  select(year, `KFE nominal YoY %` = kfe_nominal_yoy,
+               `CPI YoY %`         = cpi_yoy,
+               `KFE real YoY %`    = kfe_real_yoy) |>
+  pivot_longer(-year, names_to = "series", values_to = "pct") |>
+  ggplot(aes(year, pct, fill = series)) +
+  geom_col(position = "dodge", width = 0.7) +
+  geom_hline(yintercept = 0, colour = pal$primary, linewidth = 0.4) +
   scale_fill_manual(
-    values = c(pal$secondary, pal$accent, pal$warn),
+    values = c(pal$accent, pal$muted, pal$secondary),
     name   = NULL
   ) +
-  scale_x_continuous(labels = label_percent(scale = 1)) +
+  scale_x_continuous(breaks = 2011:2024) +
+  scale_y_continuous(labels = label_percent(scale = 1)) +
   labs(
-    title    = "Disproportionate fatality risk by vehicle type, 2024",
-    subtitle = "Red bar > blue bar = over-represented in deaths relative to crash share",
-    x = "Share of national total", y = NULL,
-    caption  = "Source: TÜİK 2024, Tablo 1.4. Types with < 1,000 involvements omitted."
-  )
-```
-
-Motorcycles are 31.5% of involvements yet **40.0%** of driver deaths and **54.1%**
-of driver injuries. Cars are the reverse — 41.8% of involvements, 35.2% of deaths —
-thanks to structural passive safety.
-
-### 3.2 Deaths per 1,000 vehicles involved
-
-```{r vehicle-rate, fig.height=4.5}
-vehicles |>
-  filter(vehicles_involved >= 500) |>
-  mutate(vehicle_type = fct_reorder(vehicle_type, deaths_per_1000_involved)) |>
-  ggplot(aes(deaths_per_1000_involved, vehicle_type)) +
-  geom_col(fill = pal$accent) +
-  geom_text(
-    aes(label = round(deaths_per_1000_involved, 1)),
-    hjust = -0.15, size = 3
+    title    = "Annual price change: KFE vs. CPI, 2011–2024",
+    subtitle = "Real KFE turned negative in 2018 and again in 2023–2024",
+    x = NULL, y = "Year-on-year change (%)",
+    caption  = "Source: TCMB KFE, TURKSTAT CPI."
   ) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.18))) +
-  labs(
-    title    = "Driver deaths per 1,000 vehicles involved, 2024",
-    subtitle = "Controls for crash frequency — pure risk-per-incident view",
-    x = "Deaths per 1,000 involved vehicles", y = NULL,
-    caption  = "Source: TÜİK 2024, Tablo 1.4."
-  )
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-Tractors: ~46 driver deaths per 1,000 involvements. Trucks: ~14. Motorcycles: ~10.
-Cars: ~6.6. Structural protection — not just speed — determines lethality.
+The **real KFE went negative** in two distinct episodes: 2018–2019 (after the currency
+crisis) and again in 2023–2024 (as inflation ran ahead of price growth). In 2022 the
+nominal KFE surged ~183% YoY — yet even then, the CPI surge of ~85% limited real gains
+to ~53%. The 2024 real decline of ~8% suggests the boom is ending in real terms.
+
+### 1.3 Cumulative growth: housing vs. inflation
+
+```{r cumulative, fig.height=4}
+kfe_annual |>
+  mutate(
+    cpi_cumul = cpi_index / 100,   # 2010=1
+    kfe_cumul = kfe_nominal / 100  # 2010=1
+  ) |>
+  select(year, `Nominal KFE` = kfe_cumul, `CPI` = cpi_cumul) |>
+  pivot_longer(-year) |>
+  ggplot(aes(year, value, colour = name)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  scale_colour_manual(values = c(pal$muted, pal$accent), name = NULL) +
+  scale_x_continuous(breaks = 2010:2024) +
+  scale_y_continuous(labels = label_number(suffix = "×")) +
+  labs(
+    title    = "Cumulative multiplier since 2010 — KFE vs. general inflation",
+    subtitle = "In 2022–2023, housing outpaced CPI; by 2024 the gap is closing",
+    x = NULL, y = "Cumulative multiplier (2010 = 1×)",
+    caption  = "Source: TCMB KFE; TURKSTAT CPI."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
 
 ---
 
-## 4. When and Where
+## 2. Regional Analysis
 
-### 4.1 Monthly pattern
+### 2.1 Five-year cumulative nominal change (2020–2024)
 
-```{r monthly, fig.height=4}
-monthly |>
-  mutate(month = factor(month, levels = monthly$month)) |>
-  ggplot(aes(month, accidents, fill = severity_index)) +
-  geom_col() +
-  geom_text(aes(label = comma(accidents)), vjust = -0.4, size = 2.7) +
-  scale_fill_gradient(
-    low  = pal$secondary,
-    high = pal$accent,
-    name = "Deaths / 100 accidents"
-  ) +
-  scale_y_continuous(labels = comma, expand = expansion(mult = c(0, 0.1))) +
-  labs(
-    title    = "Monthly accident counts, KGM network, 2024",
-    subtitle = "Bars coloured by severity — August peaks in both volume and lethality",
-    x = NULL, y = NULL,
-    caption  = "Source: KGM 2024, Tablo 2.6."
-  ) +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1))
-```
-
-August accounts for **11.3%** of annual accidents (2.1× February's 5.4%). Holiday
-traffic density and higher intercity speeds drive both volume and severity peaks.
-
-### 4.2 Day of week
-
-```{r weekday, fig.height=3.5}
-weekday |>
-  mutate(day = factor(day, levels = weekday$day)) |>
-  ggplot(aes(day, accidents)) +
+```{r regional-bar, fig.height=5}
+regional_kfe |>
+  mutate(region_name = fct_reorder(region_name, cumulative_2020_2024_pct)) |>
+  ggplot(aes(cumulative_2020_2024_pct, region_name)) +
   geom_col(fill = pal$secondary) +
-  geom_text(aes(label = comma(accidents)), vjust = -0.4, size = 3) +
-  scale_y_continuous(labels = comma, expand = expansion(mult = c(0, 0.1))) +
-  labs(
-    title    = "Accidents by day of week, 2024",
-    subtitle = "Saturday peaks (+12% vs Monday), consistent with weekend travel",
-    x = NULL, y = NULL,
-    caption  = "Source: KGM 2024, Tablo 2.7."
-  )
-```
-
-### 4.3 Daylight severity
-
-```{r daylight, fig.height=3}
-daylight |>
-  mutate(light_condition = fct_reorder(light_condition, severity_index)) |>
-  ggplot(aes(severity_index, light_condition)) +
-  geom_col(fill = pal$accent) +
   geom_text(
-    aes(label = paste0(round(severity_index, 2), " deaths / 100 acc.")),
-    hjust = -0.05, size = 3.2
-  ) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.35))) +
-  labs(
-    title    = "Fatality severity by daylight condition, 2024",
-    subtitle = "Night-time accidents are ~38% more lethal than daytime",
-    x = NULL, y = NULL,
-    caption  = "Source: KGM 2024, Tablo 2.8."
-  )
-```
-
-Night accidents kill at **7.6 per 100 accidents** vs 5.5 in daylight — a 38%
-relative increase. Reduced visibility, driver fatigue, and higher truck share at
-night all contribute.
-
-### 4.4 Urban vs. rural
-
-```{r settlement, fig.height=3}
-settlement |>
-  mutate(
-    share_acc    = fatal_injury_accidents / sum(fatal_injury_accidents),
-    share_deaths = deaths_total           / sum(deaths_total)
-  ) |>
-  select(settlement,
-         `Fatal/injury accidents` = share_acc,
-         `Deaths`                 = share_deaths) |>
-  pivot_longer(-settlement) |>
-  ggplot(aes(name, value, fill = settlement)) +
-  geom_col(width = 0.5) +
-  geom_text(
-    aes(label = percent(value, 0.1)),
-    position  = position_stack(vjust = 0.5),
-    colour    = "white", size = 4, fontface = "bold"
-  ) +
-  scale_y_continuous(labels = label_percent()) +
-  scale_fill_manual(values = c(pal$secondary, pal$accent), name = NULL) +
-  coord_flip() +
-  labs(
-    title    = "Urban vs. rural, 2024",
-    subtitle = "Cities: 86% of crashes, 56% of deaths — rural fatality risk is ~4× higher per crash",
-    x = NULL, y = NULL,
-    caption  = "Source: TÜİK 2024, Tablo 1.2."
-  )
-```
-
-### 4.5 Crash type severity
-
-```{r crash-type, fig.height=5.5}
-accident_types |>
-  filter(accidents >= 200) |>
-  mutate(
-    atype = str_wrap(accident_type, 30),
-    atype = fct_reorder(atype, fatality_rate_pct)
-  ) |>
-  ggplot(aes(fatality_rate_pct, atype)) +
-  geom_col(aes(fill = accidents)) +
-  geom_text(
-    aes(label = paste0(round(fatality_rate_pct, 1), "% (n=", comma(accidents), ")")),
-    hjust = -0.05, size = 2.7
-  ) +
-  scale_fill_gradient(
-    low  = pal$muted,
-    high = pal$primary,
-    name = "Accident count", labels = comma
+    aes(label = paste0(round(cumulative_2020_2024_pct, 0), "%")),
+    hjust = -0.1, size = 3.2
   ) +
   scale_x_continuous(
     labels = label_percent(scale = 1),
-    expand = expansion(mult = c(0, 0.4))
+    expand = expansion(mult = c(0, 0.15))
   ) +
   labs(
-    title    = "Fatality rate by crash type, 2024",
-    subtitle = "Pedestrian strikes: ~20 deaths / 100 crashes — 4× the network average",
-    x = "Deaths per 100 accidents", y = NULL,
-    caption  = "Source: KGM 2024, Tablo 2.4."
+    title    = "Cumulative nominal KFE change by NUTS-1 region, 2020–2024",
+    subtitle = "Five-year compounded gain — Aegean and West Anatolia lead",
+    x = "Cumulative % change", y = NULL,
+    caption  = "Source: TCMB KFE regional data."
   )
 ```
 
-**Pedestrian strikes** dominate severity despite low volume. Volume-leaders
-(lane-departure, side-impact, rear-end) account for most *total* deaths through
-sheer frequency — both severity and volume dimensions matter for policy.
+The **Aegean region** (İzmir, Muğla, Aydın) recorded the highest five-year cumulative
+gain at ~2,070%, driven by strong coastal demand and urban migration. **Southeast
+Anatolia** lagged at ~1,420%, reflecting lower income levels and weaker investor
+demand. The range is roughly **1.5× between the fastest and slowest region**.
 
----
+### 2.2 Annual regional comparison (2022–2024)
 
-## 5. European Comparison
-
-### 5.1 Deaths per million population
-
-```{r eu-bar, fig.height=6.5}
-eu_comparison |>
-  mutate(
-    country = fct_reorder(country, deaths_per_million_population),
-    is_tr   = country == "Turkiye"
-  ) |>
-  ggplot(aes(deaths_per_million_population, country, fill = is_tr)) +
-  geom_col() +
-  geom_text(
-    aes(label = deaths_per_million_population),
-    hjust = -0.2, size = 2.7
+```{r regional-heatmap, fig.height=5}
+regional_kfe |>
+  select(region_name, `2022` = kfe_2022_pct, `2023` = kfe_2023_pct, `2024` = kfe_2024_pct) |>
+  pivot_longer(-region_name, names_to = "year", values_to = "pct") |>
+  mutate(region_name = fct_reorder(region_name, pct, mean)) |>
+  ggplot(aes(year, region_name, fill = pct)) +
+  geom_tile(colour = "white", linewidth = 0.5) +
+  geom_text(aes(label = paste0(round(pct, 0), "%")), size = 3.2, colour = "white") +
+  scale_fill_gradient2(
+    low     = pal$secondary,
+    mid     = pal$warn,
+    high    = pal$accent,
+    midpoint = 50,
+    name    = "YoY change (%)"
   ) +
-  scale_fill_manual(
-    values = c(`FALSE` = pal$secondary, `TRUE` = pal$accent),
-    guide  = "none"
-  ) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.12))) +
   labs(
-    title    = "Road deaths per million population, 2024",
-    subtitle = "Türkiye (red) vs. EU-27. EU figures reflect 2022 data.",
+    title    = "Annual KFE change by region, 2022–2024 (%)",
+    subtitle = "2022 saw nationwide triple-digit gains; cooling is visible but uneven",
     x = NULL, y = NULL,
-    caption  = "Source: TÜİK 2024, Tablo 1.6 (EU via Transport Statistical Pocketbook 2024)."
-  ) +
-  theme(axis.text.y = element_text(size = 9))
-```
-
-Türkiye's **74 deaths per million** places it in the upper quarter of the European
-distribution — comparable to Croatia (71), well above Germany (33) and France (48).
-
-### 5.2 Motorisation vs. fatality burden
-
-```{r eu-scatter, fig.height=5}
-eu_comparison |>
-  mutate(is_tr = country == "Turkiye") |>
-  ggplot(aes(cars_per_1000, deaths_per_million_population)) +
-  geom_smooth(method = "lm", se = FALSE,
-              colour = pal$muted, linewidth = 0.7) +
-  geom_point(aes(colour = is_tr), size = 3) +
-  geom_text(
-    aes(label = country, colour = is_tr),
-    vjust = -1, size = 2.5, show.legend = FALSE
-  ) +
-  scale_colour_manual(
-    values = c(`FALSE` = pal$secondary, `TRUE` = pal$accent),
-    guide  = "none"
-  ) +
-  labs(
-    title    = "Higher motorisation → lower per-capita road deaths (Europe, 2024)",
-    subtitle = "Türkiye (red): low motorisation AND high fatalities — a structural outlier",
-    x = "Cars per 1,000 population", y = "Deaths per million population",
-    caption  = "Source: TÜİK 2024, Tablo 1.6."
+    caption  = "Source: TCMB KFE."
   )
 ```
 
-Across Europe there is a clear **negative association** between motorisation and
-per-capita fatalities. Türkiye sits bottom-left — 189 cars/1,000 vs. EU average
-540+ — yet with high fatalities, indicating the gap is structural, not mechanical.
+### 2.3 Median m² price by region, 2024
+
+```{r regional-prices, fig.height=5}
+regional_kfe |>
+  mutate(region_name = fct_reorder(region_name, median_price_2024_try_m2)) |>
+  ggplot(aes(median_price_2024_try_m2, region_name)) +
+  geom_col(fill = pal$accent) +
+  geom_text(
+    aes(label = paste0("₺", comma(median_price_2024_try_m2))),
+    hjust = -0.1, size = 3.2
+  ) +
+  scale_x_continuous(
+    labels = label_number(prefix = "₺", big.mark = ","),
+    expand = expansion(mult = c(0, 0.2))
+  ) +
+  labs(
+    title    = "Median housing unit price (TRY / m²) by NUTS-1 region, 2024",
+    subtitle = "Istanbul commands a 3× premium over Southeast Anatolia",
+    x = "Median price (TRY / m²)", y = NULL,
+    caption  = "Source: TCMB KFE quarterly unit price data."
+  )
+```
+
+Istanbul's median of **₺95,420/m²** is **3.4×** Southeast Anatolia's ₺28,150/m² —
+reflecting deep structural differences in income, urbanisation density, and investment
+demand.
 
 ---
 
-## 6. Full Data Summary
+## 3. Housing Affordability
 
-```{r full-summary-dt}
-annual |>
+### 3.1 Months of minimum wage to buy 100 m²
+
+```{r affordability-months, fig.height=4.5}
+affordability |>
+  ggplot(aes(year, affordability_months)) +
+  geom_area(fill = pal$accent, alpha = 0.15) +
+  geom_line(colour = pal$accent, linewidth = 1.2) +
+  geom_point(colour = pal$accent, size = 2.5) +
+  geom_hline(yintercept = 103.2, linetype = "dashed",
+             colour = pal$muted, linewidth = 0.6) +
+  annotate("text", x = 2010.5, y = 110, label = "2010 baseline: 103 months",
+           colour = pal$muted, size = 3.5, hjust = 0) +
+  scale_x_continuous(breaks = 2010:2024) +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title    = "Months of minimum wage required to purchase 100 m², 2010–2024",
+    subtitle = "Affordability worsened 3× in 13 years — a structural housing crisis",
+    x = NULL, y = "Monthly minimum wages (# of months)",
+    caption  = "Source: TCMB KFE unit prices; TURKSTAT minimum wage series."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+In 2010, a Turkish worker on minimum wage needed ~**103 months** (~8.6 years) of income
+to buy a 100 m² flat. By 2023 this had risen to **~330 months** (~27.5 years) — a
+3.2× deterioration. The slight improvement in 2024 reflects minimum wage increases
+outpacing nominal KFE growth that year, but affordability remains structurally impaired.
+
+### 3.2 USD-denominated prices — the dollarisation lens
+
+```{r usd-prices, fig.height=4}
+affordability |>
+  ggplot(aes(year, m2_usd)) +
+  geom_line(colour = pal$secondary, linewidth = 1.2) +
+  geom_point(colour = pal$secondary, size = 2.5) +
+  geom_area(fill = pal$secondary, alpha = 0.1) +
+  scale_x_continuous(breaks = 2010:2024) +
+  scale_y_continuous(labels = label_dollar()) +
+  labs(
+    title    = "Average housing price in USD / m², 2010–2024",
+    subtitle = "Dollar prices rose then collapsed with TRY depreciation — real foreign-currency affordability improved",
+    x = NULL, y = "USD / m²",
+    caption  = "Source: TCMB KFE; TCMB USD/TRY average exchange rate."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Viewed in USD, the picture inverts: **dollar-denominated prices peaked at ~$918/m² in
+2022** then fell as TRY depreciated faster than nominal prices rose. By 2024 the USD
+price had partially recovered to ~$1,587. This bifurcation — lira prices rising while
+dollar prices fluctuate — captures the inflation illusion at the heart of the Turkish
+housing boom.
+
+### 3.3 Min. wage vs. avg. m² price over time
+
+```{r wage-vs-price, fig.height=4}
+affordability |>
+  select(year,
+         `Minimum wage (TRY)` = min_wage_monthly_try,
+         `Avg. m² price (TRY)` = avg_m2_price_try) |>
+  pivot_longer(-year, names_to = "series", values_to = "value") |>
+  ggplot(aes(year, value, colour = series)) +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 2) +
+  scale_colour_manual(values = c(pal$accent, pal$secondary), name = NULL) +
+  scale_x_continuous(breaks = 2010:2024) +
+  scale_y_log10(labels = label_number(prefix = "₺", big.mark = ",")) +
+  labs(
+    title    = "Minimum wage vs. average m² price, 2010–2024 (log scale)",
+    subtitle = "Housing prices grew faster than wages — especially post-2021",
+    x = NULL, y = "TRY (log scale)",
+    caption  = "Source: TCMB KFE unit prices; TURKSTAT minimum wage."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+---
+
+## 4. Exchange Rate & Housing Price Relationship
+
+### 4.1 USD/TRY vs. nominal KFE — quarterly
+
+```{r fx-kfe, fig.height=4.5}
+exchange_housing |>
+  select(period, year, quarter,
+         `USD/TRY` = usdtry,
+         `KFE nominal` = kfe_nominal) |>
+  pivot_longer(c(`USD/TRY`, `KFE nominal`), names_to = "series", values_to = "value") |>
   mutate(
-    fatal_injury_share  = percent(fatal_injury_share, 0.1),
-    deaths_per_accident = round(deaths_per_accident, 4),
-    registered_vehicles = comma(registered_vehicles),
-    total_accidents     = comma(total_accidents),
-    deaths_total        = comma(deaths_total),
-    injured             = comma(injured)
+    value_norm = ifelse(series == "USD/TRY",
+                        value / exchange_housing$usdtry[1],
+                        value / exchange_housing$kfe_nominal[1])
   ) |>
-  datatable(
-    rownames = FALSE,
-    filter   = "top",
-    options  = list(pageLength = 10, dom = "ftp"),
-    caption  = "Annual headline series, 2015–2024 (interactive)"
+  ggplot(aes(period, value_norm, colour = series, group = series)) +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 1.8) +
+  scale_colour_manual(values = c(pal$secondary, pal$accent), name = NULL) +
+  scale_y_continuous(labels = label_number(suffix = "×")) +
+  labs(
+    title    = "USD/TRY vs. KFE — both normalised to Q1 2018 = 1×",
+    subtitle = "Currency depreciation consistently leads or accompanies KFE spikes",
+    x = NULL, y = "Index (Q1 2018 = 1×)",
+    caption  = "Source: TCMB EVDS (USD/TRY); TCMB KFE."
+  ) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7))
+```
+
+The two series track closely — exchange rate acceleration consistently **leads or
+coincides with KFE acceleration**. The 2021 Q4 TRY collapse (from ~8.5 to 13+ USD/TRY)
+directly preceded the 2022 nominal KFE explosion of ~183% YoY.
+
+### 4.2 YoY change correlation
+
+```{r fx-correlation, fig.height=4}
+exchange_housing |>
+  filter(!is.na(kfe_yoy_pct)) |>
+  mutate(
+    usdtry_yoy = (usdtry / lag(usdtry, 4) - 1) * 100
+  ) |>
+  filter(!is.na(usdtry_yoy)) |>
+  ggplot(aes(usdtry_yoy, kfe_yoy_pct)) +
+  geom_point(aes(colour = factor(year)), size = 3) +
+  geom_smooth(method = "lm", se = TRUE,
+              colour = pal$accent, fill = pal$accent, alpha = 0.1,
+              linewidth = 0.8) +
+  scale_colour_viridis_d(name = "Year", option = "D") +
+  scale_x_continuous(labels = label_percent(scale = 1)) +
+  scale_y_continuous(labels = label_percent(scale = 1)) +
+  labs(
+    title    = "USD/TRY annual change vs. KFE annual change — quarterly data 2019–2024",
+    subtitle = "Strong positive correlation: currency depreciation feeds into housing prices",
+    x = "USD/TRY YoY change (%)", y = "KFE nominal YoY change (%)",
+    caption  = "Source: TCMB EVDS; TCMB KFE. Each point = one quarter."
   )
+```
+
+### 4.3 Real vs. nominal KFE growth — separating inflation premium
+
+```{r real-premium, fig.height=4}
+exchange_housing |>
+  filter(!is.na(kfe_yoy_pct)) |>
+  select(period, year, `Nominal KFE YoY` = kfe_yoy_pct,
+         `CPI YoY` = cpi_yoy_pct, `Real KFE YoY` = kfe_real_yoy_pct) |>
+  pivot_longer(-c(period, year), names_to = "series", values_to = "pct") |>
+  ggplot(aes(period, pct, colour = series, group = series)) +
+  geom_line(linewidth = 0.9) +
+  geom_hline(yintercept = 0, linetype = "dashed",
+             colour = pal$muted, linewidth = 0.4) +
+  scale_colour_manual(
+    values = c(pal$muted, pal$accent, pal$secondary),
+    name   = NULL
+  ) +
+  scale_y_continuous(labels = label_percent(scale = 1)) +
+  labs(
+    title    = "Nominal KFE, CPI, and real KFE change — quarterly, 2019–2024",
+    subtitle = "Real KFE has been negative in most quarters since Q3 2022",
+    x = NULL, y = "YoY change (%)",
+    caption  = "Source: TCMB KFE; TURKSTAT CPI."
+  ) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7))
+```
+
+---
+
+## 5. Supply-Side: Sales and Building Permits
+
+### 5.1 Housing sales — total and by type
+
+```{r sales-trend, fig.height=4.5}
+sales_permits |>
+  select(year, `Total sales` = sales_total,
+         `First-hand` = sales_first_hand,
+         `Second-hand` = sales_second_hand) |>
+  filter(year >= 2015) |>
+  pivot_longer(-year, names_to = "type", values_to = "count") |>
+  filter(!is.na(count)) |>
+  ggplot(aes(year, count, colour = type)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  scale_colour_manual(
+    values = c(pal$accent, pal$secondary, pal$warn),
+    name   = NULL
+  ) +
+  scale_x_continuous(breaks = 2015:2024) +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title    = "Housing sales by type, 2015–2024",
+    subtitle = "Total sales peaked in 2020 (credit stimulus) and have since declined",
+    x = NULL, y = "Number of units sold",
+    caption  = "Source: TÜİK İnşaat ve Konut İstatistikleri."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Sales peaked in **2020** at 1.5 million units, boosted by the government's subsidised
+mortgage campaign (June 2020). Since then, rising prices and tightening credit have
+driven sales down to **1.07 million** in 2024 — the lowest since 2010.
+
+### 5.2 Building permits — the supply pipeline
+
+```{r permits-trend, fig.height=4}
+sales_permits |>
+  select(year, `Building permits (units)` = permits_residential_units,
+         `Total sales` = sales_total) |>
+  pivot_longer(-year, names_to = "series", values_to = "value") |>
+  ggplot(aes(year, value, colour = series)) +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 2.2) +
+  scale_colour_manual(values = c(pal$accent, pal$secondary), name = NULL) +
+  scale_x_continuous(breaks = 2010:2024) +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title    = "Building permits vs. housing sales, 2010–2024",
+    subtitle = "Supply pipeline (permits) halved from 2015 peak — structural undersupply ahead",
+    x = NULL, y = "Number of units",
+    caption  = "Source: TÜİK İnşaat ve Konut İstatistikleri."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Building permits — the leading indicator of future supply — fell from **1.22 million
+units** in 2015 to **549,000** in 2024, a **55% decline**. Given the 2–4 year lag
+between permit issuance and delivery, this signals a structural supply shortfall through
+at least 2026–2027, which will continue to support nominal prices despite real declines.
+
+### 5.3 Interactive full data table
+
+```{r sales-dt}
+sales_permits |>
+  mutate(
+    sales_total       = comma(sales_total),
+    permits_residential_units = comma(permits_residential_units),
+    second_hand_share = paste0(round(second_hand_share, 1), "%"),
+    mortgage_share    = ifelse(is.na(mortgage_share), "—",
+                               paste0(round(mortgage_share, 1), "%"))
+  ) |>
+  select(year, sales_total, permits_residential_units,
+         second_hand_share, mortgage_share, sales_foreign) |>
+  datatable(rownames = FALSE, filter = "top",
+            options  = list(pageLength = 15, dom = "ftp"),
+            caption  = "Annual housing market supply-demand indicators, 2010–2024")
 ```
 
 ---
 
 ## Conclusions
 
-Three findings carry direct policy weight:
+Four structural findings emerge from this analysis:
 
-1. **The normalised trend improved over the decade but reversed after 2021.**
-   Fleet growth has recently outpaced safety improvement; the per-capita gap
-   to Europe is closing only slowly.
+1. **The Turkish housing boom is largely nominal, not real.** KFE rose ~48× nominally
+   but only ~18% in real terms since 2010, and that real gain has partially reversed
+   since 2022. Buyers in 2021–2023 effectively paid an inflation premium.
 
-2. **A small set of behaviours explains a large share of harm.** Speed-related
-   errors account for >40% of driver faults; pedestrian strikes are ~4% of crashes
-   but a disproportionate share of fatalities. Targeted enforcement and pedestrian
-   infrastructure are high-leverage interventions.
+2. **Affordability has collapsed to crisis levels.** The 3× worsening in the
+   months-of-minimum-wage metric is structural, not cyclical — it reflects a decade
+   of supply under-investment coinciding with income growth that could not keep pace
+   with price inflation or currency depreciation.
 
-3. **Vulnerability is type-bound.** Motorcyclists and tractor operators carry
-   4–7× the per-crash fatality risk of car drivers; night-time and rural accidents
-   are markedly deadlier per event. Protective-gear enforcement, rural road upgrades,
-   and visibility improvements each address structurally distinct slices of the problem.
+3. **Exchange rate risk is the dominant driver.** The pass-through from USD/TRY
+   depreciation to nominal housing prices is rapid and strong — Turkish housing has
+   effectively acted as a partial inflation hedge in lira terms, drawing in domestic
+   savings as a store of value.
+
+4. **The supply pipeline threatens prolonged undersupply.** The 55% fall in building
+   permits since 2015, combined with post-earthquake relocation demand, means structural
+   supply constraints will persist even if nominal price growth slows further. True
+   affordability improvement requires both price cooling and a supply-side policy response.

@@ -1,6 +1,6 @@
 ---
-title: "Road Traffic Accidents in Türkiye"
-subtitle: "2015–2024 · EMU430 Data Analytics Term Project"
+title: "Turkish Housing Market"
+subtitle: "Nominal Growth, Real Losses, and Affordability — 2010–2024"
 author:
   - name: "Arda Tüylüoğlu"
     url: https://github.com/KULLANICI_ADI_ARDA
@@ -19,9 +19,8 @@ library(knitr)
 library(tidyr)
 library(DT)
 
-load("data/traffic_accidents_tr.RData")
+load("data/housing_market_tr.RData")
 
-# Renk paleti — list olarak tanımla, pal$accent şeklinde eriş
 pal <- list(
   primary   = "#1a1814",
   secondary = "#2c3e50",
@@ -31,7 +30,6 @@ pal <- list(
   muted     = "#95a5a6"
 )
 
-# ggplot teması
 theme_set(
   theme_minimal(base_size = 12) +
     theme(
@@ -52,16 +50,19 @@ theme_set(
 
 ## Project Overview
 
-Road traffic safety is one of Türkiye's most persistent public challenges. Between
-2015 and 2024 the registered vehicle fleet grew by **57%** — yet fatal-or-injurious
-accidents rose **46%**, reaching **266,854** in 2024. This project analyses a decade
-of official accident statistics from **TÜİK**, **KGM**, and **EGM** to answer four
-core questions:
+Turkey has experienced one of the world's most dramatic housing price surges in recent
+years — driven by high inflation, sharp currency depreciation, post-earthquake demand
+shocks, and structural supply constraints. Between 2010 and 2024, the **Residential
+Property Price Index (KFE)** published by TCMB rose by nearly **4,800%** in nominal
+terms. Yet once adjusted for inflation, the real gain is far more modest — and in
+recent years has turned negative.
 
-1. How have fatality and injury rates evolved relative to fleet growth?
-2. Where is the safety burden concentrated — seasonally, by vehicle type, by geography?
-3. Which driver behaviours and crash types are most lethal?
-4. How does Türkiye compare with European peers?
+This project investigates the Turkish housing market through four lenses:
+
+1. How have housing prices evolved **nominally vs. in real (inflation-adjusted) terms** since 2010?
+2. Which **regions** have experienced the most extreme price growth, and what patterns emerge geographically?
+3. How has **housing affordability** changed — measured by the m² price-to-minimum wage ratio?
+4. What is the relationship between **USD/TRY exchange rate shocks** and housing price movements?
 
 Explore the full analysis on the [Analysis](analysis.qmd) page and dataset details
 on the [Data](data.qmd) page.
@@ -70,34 +71,34 @@ on the [Data](data.qmd) page.
 
 ## 2024 Snapshot
 
-```{r topline-table}
-y    <- annual |> filter(year == 2024)
-prev <- annual |> filter(year == 2023)
+```{r topline}
+latest  <- kfe_annual |> filter(year == 2024)
+prev    <- kfe_annual |> filter(year == 2023)
+base    <- kfe_annual |> filter(year == 2010)
+aff_now <- affordability |> filter(year == 2024)
+aff_10  <- affordability |> filter(year == 2010)
 
 tibble::tibble(
   Indicator = c(
-    "Registered vehicles",
-    "Total accidents",
-    "Fatal / injury accidents",
-    "Deaths (within 30 days)",
-    "Injured"
+    "Nominal KFE (2010 = 100)",
+    "Real KFE (2010 = 100)",
+    "Nominal KFE — YoY change",
+    "Real KFE — YoY change",
+    "Average m² price (TRY)",
+    "Average m² price (USD)",
+    "Months of min. wage for 100 m²"
   ),
-  `2024` = c(
-    comma(y$registered_vehicles),
-    comma(y$total_accidents),
-    comma(y$fatal_injury_accidents),
-    comma(y$deaths_total),
-    comma(y$injured)
-  ),
-  `Change vs 2023` = c(
-    percent((y$registered_vehicles    - prev$registered_vehicles)    / prev$registered_vehicles,    0.1),
-    percent((y$total_accidents         - prev$total_accidents)         / prev$total_accidents,         0.1),
-    percent((y$fatal_injury_accidents  - prev$fatal_injury_accidents)  / prev$fatal_injury_accidents,  0.1),
-    percent((y$deaths_total            - prev$deaths_total)            / prev$deaths_total,            0.1),
-    percent((y$injured                 - prev$injured)                 / prev$injured,                 0.1)
+  Value = c(
+    comma(round(latest$kfe_nominal, 1)),
+    comma(round(latest$kfe_real, 1)),
+    paste0(round(latest$kfe_nominal_yoy, 1), "%"),
+    paste0(round(latest$kfe_real_yoy, 1), "%"),
+    paste0("₺", comma(aff_now$avg_m2_price_try)),
+    paste0("$", comma(aff_now$avg_m2_price_usd)),
+    round(aff_now$affordability_months, 0)
   )
 ) |>
-  kable(align = "lrr")
+  kable(align = "lr")
 ```
 
 ---
@@ -107,21 +108,24 @@ tibble::tibble(
 ::: {.callout-note icon="false"}
 ### Summary of Findings
 
-- **Volume up, per-vehicle risk down.** Total accidents grew 46% from 2015 to 2024,
-  yet deaths per 100,000 registered vehicles fell from **37.7 to 20.3** — a ~46%
-  reduction in vehicle-normalised fatality risk.
+- **Nominal surge, real stagnation.** The KFE rose ~4,800% in nominal terms from 2010
+  to 2024. After adjusting for CPI, the real index peaked in **2022 at 153.7** then
+  fell back — in 2024 real prices were below the 2021 peak, meaning buyers largely paid
+  an inflation premium, not a true wealth gain.
 
-- **2020 was a pandemic-era anomaly.** Both accident volume and deaths fell sharply
-  (deaths: 4,866 — decade low), then overshot pre-pandemic levels by 2023.
+- **The affordability crisis is structural.** In 2010, a 100 m² flat cost ~103 monthly
+  minimum wages. By 2023 this had risen to **~330 months** — a 3× worsening. USD-priced
+  affordability also deteriorated sharply as the lira depreciated.
 
-- **Driver fault dominates.** Driver errors account for ~88–90% of attributable
-  causes every year. The single most common error in 2024 is *failing to adapt
-  speed to road, weather, and traffic conditions* (40.8% of driver faults).
+- **Exchange rate shocks transmit rapidly.** The 2018 currency crisis (+60% USD/TRY in
+  one year) and the 2021–22 depreciation episode (+87%) both preceded or coincided with
+  the sharpest nominal KFE increases — suggesting a strong pass-through effect.
 
-- **Motorcycles carry outsized risk.** They make up 31.5% of vehicles in
-  fatal/injury accidents yet account for **40.0%** of driver deaths and **54.1%**
-  of driver injuries.
+- **Istanbul and Aegean lead, Southeast lags.** The five-year (2020–2024) cumulative
+  KFE increase ranged from ~21× in the Aegean to ~14× in Southeast Anatolia — a 1.5×
+  geographic spread in nominal terms.
 
-- **Türkiye lags Europe.** With ~74 deaths per million population in 2024,
-  Türkiye sits well above the EU-27 average of ~47.
+- **Supply is contracting.** Building permits peaked at 1.2 million units in 2015 and
+  fell to ~549,000 in 2024. This structural supply decline, combined with post-earthquake
+  displacement demand, is reinforcing price pressure.
 :::

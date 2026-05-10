@@ -8,176 +8,169 @@ library(dplyr)
 library(knitr)
 library(scales)
 library(DT)
-
-load("data/traffic_accidents_tr.RData")
+load("data/housing_market_tr.RData")
 ```
 
 ## Data Sources
 
-We combine three official Turkish open-data sources into a single tidy collection:
+We integrate four official Turkish data sources into a unified analytical dataset:
 
-| Source | Coverage | Used for |
-|---|---|---|
-| **TÜİK** — *Karayolu Trafik Kaza İstatistikleri 2024* | National totals, vehicle types, EU comparison, urban/rural | Annual time series 2015–2024 |
-| **KGM** — *2024 Trafik Kazalarına Ait Özet Bilgiler* | KGM road network (highways, state, provincial roads) | Monthly, weekday, daylight, fault factors |
-| **EGM / JGK** | Underlying records aggregated into KGM/TÜİK tables | Via upstream tables |
+| # | Source | Series | Coverage |
+|---|---|---|---|
+| 1 | **TCMB** — Konut Fiyat Endeksi | Nominal & real KFE, NUTS-1 regional KFE | Monthly, 2010–2024 |
+| 2 | **TCMB EVDS** — Consumer Prices | CPI index for deflation | Monthly, 2010–2024 |
+| 3 | **TCMB EVDS** — Exchange Rates | USD/TRY monthly average | Monthly, 2010–2024 |
+| 4 | **TÜİK** — İnşaat ve Konut İstatistikleri | Housing sales counts, building permits | Annual, 2010–2024 |
 
 **Direct links:**
 
-- TÜİK 2024 bulletin: <https://data.tuik.gov.tr/Bulten/Index?p=Road-Traffic-Accident-Statistics-2024-54056>
-- KGM 2024 summary PDF: <https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/Trafik-kaza-ozetbilgi.pdf>
-- EGM Trafik Başkanlığı: <https://www.trafik.gov.tr/istatistikler37>
+- TCMB KFE: <https://www.tcmb.gov.tr/wps/wcm/connect/tr/tcmb+tr/main+menu/istatistikler/reel+sektor+istatistikleri/konut+fiyat+endeksi/>
+- TCMB EVDS (CPI, Kur): <https://evds2.tcmb.gov.tr>
+- TÜİK Konut İstatistikleri: <https://data.tuik.gov.tr/Kategori/GetKategori?p=insaat-ve-konut-116>
 
 ::: {.callout-note}
-**Why this dataset?** Traffic safety in Türkiye is a high-stakes public-interest
-topic with rich official data, decade-long temporal coverage, vehicle-type and
-causal-factor granularity, and a ready European benchmark — enabling descriptive,
-comparative, and causal analyses in a single coherent narrative.
+**Why this dataset?** Turkey's housing market has undergone one of the world's most
+extreme price cycles in 2020–2024, driven by a unique combination of currency collapse,
+triple-digit inflation, post-earthquake displacement, and supply-side contraction.
+This makes it an exceptionally rich case study for understanding how macroeconomic
+shocks transmit into asset markets — directly relevant to Turkey and actionable for
+policy, investment, and academic audiences.
 :::
 
 ---
 
 ## Preprocessing Pipeline
 
-Raw TÜİK/KGM publications are not available as analysis-ready files. Our three-step pipeline is fully reproducible from `R/01_preprocess.R`:
+Raw TCMB and TÜİK data require aggregation and cleaning before analysis.
+The full pipeline is in `R/01_preprocess.R`. Key steps:
 
 **Step 1 — Manual extraction.**  
-Each table was extracted from official PDFs and saved as `data/raw_*.csv`. Separating
-transcription from analysis makes corrections trivial.
+Annual and quarterly series were extracted from TCMB publications and TÜİK statistical
+tables into `data/raw_*.csv` files, preserving original source values.
 
-**Step 2 — Tidying in R.**  
-CSV files are read with UTF-8 encoding, percentage columns converted to numeric, and
-tables reshaped to one-row-per-observation with `snake_case` column names.
+**Step 2 — Tidying and harmonisation.**  
+All CSV files are read with UTF-8 encoding and reshaped to one-row-per-observation
+with consistent `snake_case` column names.
 
 **Step 3 — Derived variables.**
 
 | Variable | Object | Formula |
 |---|---|---|
-| `fatal_injury_share` | `annual` | fatal_injury_accidents / total_accidents |
-| `deaths_per_accident` | `annual` | deaths_total / fatal_injury_accidents |
-| `severity_index` | `monthly`, `weekday`, `daylight` | deaths / accidents × 100 |
-| `deaths_per_1000_involved` | `vehicles` | driver_deaths_total / vehicles_involved × 1000 |
-| `fatality_rate_pct` | `accident_types` | deaths / accidents × 100 |
+| `kfe_nominal_yoy` | `kfe_annual` | (kfe_nominal / lag(kfe_nominal) − 1) × 100 |
+| `kfe_real_yoy` | `kfe_annual` | (kfe_real / lag(kfe_real) − 1) × 100 |
+| `cpi_yoy` | `kfe_annual` | (cpi_index / lag(cpi_index) − 1) × 100 |
+| `cumulative_2020_2024_pct` | `regional_kfe` | Compounded 5-year nominal change |
+| `real_premium` | `exchange_housing` | kfe_yoy_pct − cpi_yoy_pct |
+| `second_hand_share` | `sales_permits` | sales_second_hand / sales_total × 100 |
+| `mortgage_share` | `sales_permits` | sales_mortgage / sales_total × 100 |
 
 ```{r preprocess-show, eval=FALSE}
 # R/01_preprocess.R  —  run once before rendering
-# setwd("sansasyonel/")  then  source("R/01_preprocess.R")
-
 library(readr); library(dplyr)
 
 read_raw <- function(f) read_csv(file.path("data", f),
                                   show_col_types = FALSE,
                                   locale = locale(encoding = "UTF-8"))
 
-annual <- read_raw("raw_annual_2015_2024.csv") |>
-  mutate(fatal_injury_share  = fatal_injury_accidents / total_accidents,
-         deaths_per_accident = deaths_total / fatal_injury_accidents)
+kfe_annual <- read_raw("raw_kfe_annual.csv") |>
+  mutate(
+    kfe_nominal_yoy = (kfe_nominal / lag(kfe_nominal) - 1) * 100,
+    kfe_real_yoy    = (kfe_real    / lag(kfe_real)    - 1) * 100,
+    cpi_yoy         = (cpi_index   / lag(cpi_index)   - 1) * 100,
+    kfe_cumulative  = kfe_nominal / 100
+  )
 
-fault_pct <- read_raw("raw_fault_pct_2015_2024.csv")
+regional_kfe <- read_raw("raw_regional_kfe.csv") |>
+  mutate(
+    avg_annual_pct = (kfe_2020_pct + kfe_2021_pct + kfe_2022_pct +
+                      kfe_2023_pct + kfe_2024_pct) / 5,
+    cumulative_2020_2024_pct =
+      ((1 + kfe_2020_pct/100) * (1 + kfe_2021_pct/100) *
+       (1 + kfe_2022_pct/100) * (1 + kfe_2023_pct/100) *
+       (1 + kfe_2024_pct/100) - 1) * 100
+  )
 
-vehicles <- read_raw("raw_vehicle_type_2024.csv") |>
-  mutate(deaths_per_1000_involved = 1000 * driver_deaths_total / vehicles_involved)
+affordability    <- read_raw("raw_affordability.csv")
+exchange_housing <- read_raw("raw_exchange_housing.csv") |>
+  mutate(period = paste0(year, " ", quarter),
+         real_premium = kfe_yoy_pct - cpi_yoy_pct)
+sales_permits    <- read_raw("raw_sales_permits.csv") |>
+  mutate(second_hand_share = sales_second_hand / sales_total * 100,
+         mortgage_share    = sales_mortgage    / sales_total * 100)
 
-rates    <- read_raw("raw_rates_2015_2024.csv")
-monthly  <- read_raw("raw_monthly_2024.csv")   |> mutate(severity_index = deaths / accidents * 100)
-weekday  <- read_raw("raw_dayofweek_2024.csv") |> mutate(severity_index = deaths / accidents * 100)
-daylight <- read_raw("raw_daylight_2024.csv")  |> mutate(severity_index = deaths / accidents * 100)
-
-driver_faults  <- read_raw("raw_driver_faults_2024.csv")
-accident_types <- read_raw("raw_accident_type_2024.csv") |>
-  mutate(fatality_rate_pct = deaths / accidents * 100)
-eu_comparison  <- read_raw("raw_eu_comparison_2024.csv")
-settlement     <- read_raw("raw_settlement_2024.csv")
-
-save(annual, fault_pct, vehicles, rates, monthly, weekday,
-     daylight, driver_faults, accident_types, eu_comparison, settlement,
-     file = "data/traffic_accidents_tr.RData")
+save(kfe_annual, regional_kfe, affordability,
+     exchange_housing, sales_permits,
+     file = "data/housing_market_tr.RData")
 ```
 
 ---
 
 ## The Final Dataset
 
-All analysis pages load one file:
-
-**[⬇ Download traffic_accidents_tr.RData](data/traffic_accidents_tr.RData)**
+**[⬇ Download housing_market_tr.RData](data/housing_market_tr.RData)**
 
 ```r
-load("data/traffic_accidents_tr.RData")  # 11 data frame available
+load("data/housing_market_tr.RData")  # 5 data frame yüklenir
 ```
 
 ### Contents
 
-```{r contents-table}
+```{r contents}
 tibble::tibble(
-  Object = c("annual","fault_pct","vehicles","rates",
-             "monthly","weekday","daylight","driver_faults",
-             "accident_types","eu_comparison","settlement"),
+  Object = c("kfe_annual","regional_kfe","affordability",
+             "exchange_housing","sales_permits"),
   Description = c(
-    "National annual totals 2015–2024",
-    "Yearly share of accident causes by category",
-    "Vehicle-type involvement and driver outcomes, 2024",
-    "Per-100k-population / per-100k-vehicle rates, 2015–2024",
-    "Monthly accident/death/injured counts, KGM network, 2024",
-    "Day-of-week distribution, KGM network, 2024",
-    "Daylight-condition distribution, KGM network, 2024",
-    "Top driver fault categories, KGM network, 2024",
-    "Accident occurrence types, KGM network, 2024",
-    "Cross-country comparison with EU-27, 2024",
-    "Urban vs. rural breakdown, 2024"
+    "Annual KFE (nominal & real), CPI, USD/TRY, sales, permits — 2010–2024",
+    "NUTS-1 regional annual KFE change % and median unit prices — 2020–2024",
+    "Housing affordability: m² price, min. wage, months-to-buy — 2010–2024",
+    "Quarterly USD/TRY vs KFE for correlation analysis — 2018–2024",
+    "Annual housing sales by type and building permits — 2010–2024"
   ),
-  Rows = c(nrow(annual), nrow(fault_pct), nrow(vehicles), nrow(rates),
-           nrow(monthly), nrow(weekday), nrow(daylight), nrow(driver_faults),
-           nrow(accident_types), nrow(eu_comparison), nrow(settlement))
+  Rows = c(nrow(kfe_annual), nrow(regional_kfe), nrow(affordability),
+           nrow(exchange_housing), nrow(sales_permits))
 ) |> kable()
 ```
 
-### Interactive preview — `annual`
+### Preview — `kfe_annual`
 
-```{r dt-annual}
-annual |>
-  mutate(
-    registered_vehicles    = comma(registered_vehicles),
-    total_accidents        = comma(total_accidents),
-    fatal_injury_accidents = comma(fatal_injury_accidents),
-    deaths_total           = comma(deaths_total),
-    injured                = comma(injured),
-    fatal_injury_share     = percent(fatal_injury_share, 0.1),
-    deaths_per_accident    = round(deaths_per_accident, 4)
-  ) |>
-  datatable(
-    rownames = FALSE,
-    options  = list(pageLength = 10, dom = "t"),
-    caption  = "Annual headline series, 2015–2024"
-  )
+```{r dt-kfe}
+kfe_annual |>
+  select(year, kfe_nominal, kfe_real, cpi_index, usdtry_avg,
+         kfe_nominal_yoy, kfe_real_yoy) |>
+  mutate(across(c(kfe_nominal, kfe_real, cpi_index), ~round(., 1)),
+         across(c(kfe_nominal_yoy, kfe_real_yoy), ~round(., 1))) |>
+  datatable(rownames = FALSE,
+            options  = list(pageLength = 15, dom = "t"),
+            caption  = "Annual KFE series, 2010–2024")
 ```
 
-### Interactive preview — `vehicles` (2024)
+### Preview — `regional_kfe`
 
-```{r dt-vehicles}
-vehicles |>
-  select(vehicle_type, vehicles_involved, vehicles_pct,
-         driver_deaths_total, deaths_pct, injured_pct,
-         deaths_per_1000_involved) |>
-  arrange(desc(vehicles_involved)) |>
-  mutate(deaths_per_1000_involved = round(deaths_per_1000_involved, 1)) |>
-  datatable(
-    rownames = FALSE,
-    filter   = "top",
-    options  = list(pageLength = 10, dom = "ftp"),
-    caption  = "Vehicle-type involvement and driver outcomes, 2024"
-  )
+```{r dt-regional}
+regional_kfe |>
+  select(region_code, region_name, kfe_2022_pct, kfe_2023_pct,
+         kfe_2024_pct, avg_annual_pct, cumulative_2020_2024_pct,
+         median_price_2024_try_m2) |>
+  mutate(across(c(avg_annual_pct, cumulative_2020_2024_pct), ~round(., 1)),
+         median_price_2024_try_m2 = comma(median_price_2024_try_m2)) |>
+  datatable(rownames = FALSE, filter = "top",
+            options  = list(pageLength = 12, dom = "ftp"),
+            caption  = "Regional KFE — annual change % and 2024 median unit price")
 ```
 
 ---
 
 ## Data Quality Notes
 
-- **Coverage difference.** The annual TÜİK series covers *all* road accidents in
-  Türkiye. Monthly/weekday/daylight/fault tables come from the KGM-responsibility
-  network only (~20% of national fatal/injury accidents but ~53% of fatalities).
-- **30-day fatality definition.** A person is counted as a road death if they die
-  within 30 days of the accident from related injuries.
-- **Missing 2024 vehicle-km.** Annual vkm for 2024 had not been published at
-  collection time, so `rates$deaths_per_billion_vkm` and
-  `rates$injured_per_billion_vkm` are `NA` for 2024.
+- **KFE methodology revision (July 2024).** TCMB revised the KFE calculation from a
+  quarterly to a monthly hedonic regression model, rebasing to 2023=100. The annual
+  series here has been converted to a consistent 2010=100 base for comparability.
+
+- **Regional data.** NUTS-1 regional breakdowns are published as annual % change
+  figures. Median unit prices are TCMB-reported quarterly figures averaged to annual.
+
+- **Sales data.** First-hand / second-hand split is available from 2015 onwards.
+  Foreign buyer sales figures from TÜİK annual tables.
+
+- **CPI deflation.** Real KFE is computed using TURKSTAT's official CPI index
+  (2003=100 base, consistent series).
