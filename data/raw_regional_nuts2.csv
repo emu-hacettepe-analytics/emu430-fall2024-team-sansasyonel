@@ -1,0 +1,27 @@
+region_code,region_name,nuts_level,cities,kfe_2020_yoy_pct,kfe_2021_yoy_pct,kfe_2022_yoy_pct,kfe_2023_yoy_pct,kfe_2024_yoy_pct,median_price_try_m2_2024
+TR10,Istanbul,NUTS-2,Istanbul,29.5,70.2,182.4,62.1,42.1,95420
+TR21,Tekirdag-Edirne-Kirklareli,NUTS-2,"Tekirdag, Edirne, Kirklareli",27.3,62.1,155.4,48.3,22.1,48350
+TR22,Balikesir-Canakkale,NUTS-2,"Balikesir, Canakkale",33.4,74.8,165.3,54.2,27.0,57240
+TR31,Izmir,NUTS-2,Izmir,36.8,81.4,198.7,70.3,24.3,82640
+TR32,Aydin-Denizli-Mugla,NUTS-2,"Aydin, Denizli, Mugla",39.2,88.6,215.4,72.1,23.5,74820
+TR33,Manisa-Afyon-Kutahya-Usak,NUTS-2,"Manisa, Afyonkarahisar, Kutahya, Usak",28.6,65.4,172.8,58.4,23.7,42380
+TR41,Bursa-Eskisehir-Bilecik,NUTS-2,"Bursa, Eskisehir, Bilecik",27.9,63.2,168.4,56.8,23.0,58730
+TR42,Kocaeli-Sakarya-Duzce-Bolu-Yalova,NUTS-2,"Kocaeli, Sakarya, Duzce, Bolu, Yalova",30.8,68.4,178.3,64.2,28.5,65420
+TR51,Ankara,NUTS-2,Ankara,34.8,79.2,192.6,74.6,30.4,72580
+TR52,Konya-Karaman,NUTS-2,"Konya, Karaman",29.4,66.8,175.2,59.8,24.0,45180
+TR61,Antalya-Isparta-Burdur,NUTS-2,"Antalya, Isparta, Burdur",27.2,60.4,169.8,57.1,22.2,61480
+TR62,Adana-Mersin,NUTS-2,"Adana, Mersin",25.8,57.2,165.4,53.8,23.1,38640
+TR63,Hatay-Kahramanmaras-Osmaniye,NUTS-2,"Hatay, Kahramanmaras, Osmaniye",18.4,43.6,141.2,44.6,21.1,28940
+TR71,Kirikkale-Aksaray-Nigde-Nevsehir-Kirsehir,NUTS-2,"Kirikkale, Aksaray, Nigde, Nevsehir, Kirsehir",24.8,57.4,176.3,60.2,31.5,39840
+TR72,Kayseri-Sivas-Yozgat,NUTS-2,"Kayseri, Sivas, Yozgat",23.6,54.8,168.4,56.8,NA,38120
+TR81,Zonguldak-Karabuk-Bartin,NUTS-2,"Zonguldak, Karabuk, Bartin",21.4,50.2,158.4,52.1,27.3,33480
+TR82,Kastamonu-Cankiri-Sinop,NUTS-2,"Kastamonu, Cankiri, Sinop",19.8,46.8,149.6,47.8,NA,30240
+TR83,Samsun-Tokat-Corum-Amasya,NUTS-2,"Samsun, Tokat, Corum, Amasya",21.2,49.6,154.8,50.4,NA,36480
+TR90,Trabzon-Ordu-Giresun-Rize-Artvin-Gumushane,NUTS-2,"Trabzon, Ordu, Giresun, Rize, Artvin, Gumushane",20.4,48.2,150.6,48.8,26.1,34920
+TRA1,Erzurum-Erzincan-Bayburt,NUTS-2,"Erzurum, Erzincan, Bayburt",18.9,45.8,146.2,46.2,27.7,31480
+TRA2,Agri-Kars-Igdir-Ardahan,NUTS-2,"Agri, Kars, Igdir, Ardahan",17.8,43.2,142.8,44.8,NA,27840
+TRB1,Malatya-Elazig-Bingol-Tunceli,NUTS-2,"Malatya, Elazig, Bingol, Tunceli",19.6,47.4,153.2,48.6,29.8,31280
+TRB2,Van-Mus-Bitlis-Hakkari,NUTS-2,"Van, Mus, Bitlis, Hakkari",18.2,44.6,146.8,45.8,NA,26840
+TRC1,Gaziantep-Adiyaman-Kilis,NUTS-2,"Gaziantep, Adiyaman, Kilis",17.6,42.8,138.4,43.4,NA,28640
+TRC2,Sanliurfa-Diyarbakir,NUTS-2,"Sanliurfa, Diyarbakir",16.8,41.2,135.6,42.6,NA,26480
+TRC3,Mardin-Batman-Sirnak-Siirt,NUTS-2,"Mardin, Batman, Sirnak, Siirt",16.2,40.4,132.8,41.8,NA,25680
