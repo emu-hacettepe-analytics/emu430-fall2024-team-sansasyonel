@@ -3,36 +3,44 @@ project:
   output-dir: docs
 
 website:
-  title: "xxx' Project Lab"
+  title: "Sansasyonel"
+  description: "Road Traffic Accidents in Türkiye, 2015–2024"
   navbar:
-    search: true
+    background: dark
+    foreground: light
+    title: "Sansasyonel"
     left:
-      - text: Home
-        href: index.qmd
-      - text: Data
-        href: data.qmd
-      - text: Analysis
-        href: analysis.qmd
-
-            
-    tools:
-      - icon: github
-        href: https://twitter.com
-
-  page-navigation: true
-  back-to-top-navigation: true
+      - href: index.qmd
+        text: Home
+      - href: data.qmd
+        text: Data
+      - href: analysis.qmd
+        text: Analysis
   page-footer:
-    center: "Hacettepe IE - EMU 430 - Fall 2024" 
-    border: true
+    center: |
+      Sansasyonel &nbsp;·&nbsp; EMU430 Data Analytics &nbsp;·&nbsp;
+      Hacettepe University &nbsp;·&nbsp; Spring 2025–2026
+
 format:
   html:
+    theme:
+      - flatly
+      - assets/style.css
     toc: true
-    toc-location: left
-    theme: 
-      light: simplex 
-      dark: cyborg
-    css: styles.css
+    toc-depth: 3
+    toc-title: "Contents"
+    code-fold: true
+    code-summary: "▶ Show code"
+    code-tools: true
+    fig-width: 9
+    fig-height: 5
+    fig-align: center
+    df-print: paged
+    smooth-scroll: true
+    html-math-method: katex
 
-
-editor: visual
-
+execute:
+  warning: false
+  message: false
+  echo: true
+  freeze: false
