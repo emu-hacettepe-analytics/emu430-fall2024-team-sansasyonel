@@ -79,7 +79,6 @@ This project investigates the Turkish housing market through four lenses:
 https://emu-hacettepe-analytics.github.io/emu430-spring2026-ardatuyluoglulab/
 >>>>>>> 3ecdf6adb105d58800add93ed8e4cdfa3502a3f5
 
----
 
 # Project Topic
 
