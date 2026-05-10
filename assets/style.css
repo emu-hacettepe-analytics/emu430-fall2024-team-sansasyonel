@@ -1,0 +1,239 @@
+/* ============================================================
+   Sansasyonel · EMU430 · Custom Theme
+   Stil: editorial gazete — açık zemin, siyah tipografi,
+   kırmızı accent, keskin grid, mono detaylar
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* ── Değişkenler ─────────────────────────────────────────── */
+:root {
+  --bg:        #f8f5f0;      /* krem zemin */
+  --surface:   #ffffff;
+  --border:    #d6d0c8;
+  --text:      #1a1814;      /* neredeyse siyah */
+  --muted:     #6b6560;
+  --accent:    #c0392b;      /* kırmızı */
+  --accent2:   #2c3e50;      /* koyu lacivert — ikincil */
+  --mono:      'DM Mono', monospace;
+  --serif:     'DM Serif Display', serif;
+  --sans:      'DM Sans', sans-serif;
+}
+
+/* ── Genel ───────────────────────────────────────────────── */
+body {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: var(--sans) !important;
+  font-size: 15.5px;
+  line-height: 1.75;
+}
+
+/* ── Navbar ──────────────────────────────────────────────── */
+.navbar {
+  background-color: var(--text) !important;
+  border-bottom: 3px solid var(--accent) !important;
+  padding: 0.6rem 1.2rem;
+}
+
+.navbar-brand {
+  font-family: var(--serif) !important;
+  font-size: 1.25rem !important;
+  letter-spacing: 0.01em;
+  color: #fff !important;
+}
+
+.navbar-nav .nav-link {
+  font-family: var(--mono) !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ccc !important;
+  padding: 0.5rem 1rem !important;
+  transition: color 0.15s;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+  color: var(--accent) !important;
+}
+
+/* ── Başlıklar ───────────────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: var(--serif) !important;
+  color: var(--text) !important;
+  line-height: 1.2;
+}
+
+h1 { font-size: 2.4rem; margin-bottom: 0.2rem; }
+h2 {
+  font-size: 1.55rem;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 0.25rem;
+  margin-top: 2.2rem;
+}
+h3 { font-size: 1.15rem; color: var(--accent2) !important; margin-top: 1.6rem; }
+
+/* Sayfa başlık bloğu */
+.quarto-title-block .title {
+  font-family: var(--serif) !important;
+  font-size: 2.8rem !important;
+  line-height: 1.1 !important;
+  border-left: 5px solid var(--accent);
+  padding-left: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.quarto-title-block .subtitle {
+  font-family: var(--mono) !important;
+  font-size: 0.8rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted) !important;
+  padding-left: 1.1rem;
+}
+
+/* ── İçerik alanı ────────────────────────────────────────── */
+.quarto-content #quarto-content {
+  background: var(--bg);
+}
+
+main.content {
+  max-width: 860px;
+  padding: 2rem 1.5rem;
+}
+
+/* ── Callout ─────────────────────────────────────────────── */
+.callout {
+  border-radius: 0 !important;
+  border-left-width: 4px !important;
+  border-left-color: var(--accent) !important;
+  background: #fff !important;
+  box-shadow: 2px 2px 0 var(--border);
+}
+
+.callout-note {
+  border-left-color: var(--accent2) !important;
+}
+
+.callout-title {
+  font-family: var(--mono) !important;
+  font-size: 0.78rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent2) !important;
+}
+
+/* ── Tablolar ────────────────────────────────────────────── */
+table {
+  font-size: 0.88rem;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+table thead th {
+  font-family: var(--mono) !important;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  background: var(--text);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border: none;
+}
+
+table tbody tr:nth-child(even) {
+  background: #f0ece5;
+}
+
+table tbody td {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+/* ── Code ────────────────────────────────────────────────── */
+pre, code {
+  font-family: var(--mono) !important;
+  font-size: 0.82rem !important;
+}
+
+.code-fold-btn-row button {
+  font-family: var(--mono) !important;
+  font-size: 0.72rem !important;
+  background: var(--text) !important;
+  color: #fff !important;
+  border-radius: 0 !important;
+  border: none !important;
+  padding: 0.2rem 0.6rem !important;
+  letter-spacing: 0.05em;
+}
+
+/* ── TOC ─────────────────────────────────────────────────── */
+#TOC {
+  border-left: 2px solid var(--border);
+  padding-left: 1rem;
+  font-size: 0.82rem;
+}
+
+#TOC a { color: var(--muted); text-decoration: none; }
+#TOC a:hover { color: var(--accent); }
+#TOC .active > a { color: var(--accent); font-weight: 600; }
+
+/* ── Footer ──────────────────────────────────────────────── */
+.page-footer {
+  border-top: 2px solid var(--text) !important;
+  background: var(--bg) !important;
+  font-family: var(--mono) !important;
+  font-size: 0.72rem !important;
+  color: var(--muted) !important;
+  letter-spacing: 0.05em;
+  padding: 0.8rem 1.5rem !important;
+}
+
+/* ── Stat boxes (Home sayfası için) ──────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+.stat-box {
+  background: var(--surface);
+  padding: 1.2rem 1rem;
+  text-align: center;
+}
+
+.stat-box .stat-num {
+  font-family: var(--serif);
+  font-size: 1.9rem;
+  color: var(--accent);
+  display: block;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-box .stat-label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.stat-box .stat-change {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
+  color: var(--accent2);
+}
+
+/* ── Section divider ─────────────────────────────────────── */
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}

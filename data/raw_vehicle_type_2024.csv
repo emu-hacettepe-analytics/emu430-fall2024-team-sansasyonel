@@ -1,0 +1,18 @@
+vehicle_type,vehicles_involved,vehicles_pct,driver_deaths_at_scene,driver_deaths_post_crash,driver_deaths_total,deaths_pct,injured_drivers,injured_pct
+Otomobil,164074,41.8,588,495,1083,35.2,59390,29.3
+Minibüs,9202,2.3,10,8,18,0.6,1235,0.6
+Otobüs,7016,1.8,9,10,19,0.6,487,0.2
+Kamyonet,53821,13.7,141,116,257,8.4,14578,7.2
+Kamyon,6678,1.7,42,21,63,2.1,1827,0.9
+Çekici,7837,2.0,87,19,106,3.4,2445,1.2
+Motosiklet,123675,31.5,379,849,1228,40.0,109832,54.1
+Traktör,3048,0.8,70,69,139,4.5,1467,0.7
+Özel amaçlı,794,0.2,4,4,8,0.3,202,0.1
+İş makinesi,399,0.1,1,0,1,0.0,67,0.0
+Ambulans,319,0.1,1,0,1,0.0,76,0.0
+Bisiklet,8488,2.2,26,77,103,3.4,7771,3.8
+At Arabası,41,0.0,0,0,0,0.0,24,0.0
+Tren,41,0.0,0,0,0,0.0,1,0.0
+Tramvay,123,0.0,0,0,0,0.0,2,0.0
+Elektrikli skuter,2618,0.7,4,14,18,0.6,2206,1.1
+Bilinmeyen,4565,1.2,8,21,29,0.9,1295,0.6

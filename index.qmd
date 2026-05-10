@@ -1,23 +1,127 @@
 ---
-title: "Team Sansasyonel"
-sidebar: false 
+title: "Road Traffic Accidents in Türkiye"
+subtitle: "2015–2024 · EMU430 Data Analytics Term Project"
+author:
+  - name: "Arda Tüylüoğlu"
+    url: https://github.com/KULLANICI_ADI_ARDA
+  - name: "İlhan Emre Can"
+    url: https://github.com/KULLANICI_ADI_ILHAN
+  - name: "Kayra Yaltırık"
+    url: https://github.com/KULLANICI_ADI_KAYRA
+date: today
 ---
 
-This is our project webpage.
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(knitr)
+library(tidyr)
+library(DT)
 
-Please stay tuned to follow our project activities.
+load("data/traffic_accidents_tr.RData")
 
-This is our template.
+# Renk paleti — list olarak tanımla, pal$accent şeklinde eriş
+pal <- list(
+  primary   = "#1a1814",
+  secondary = "#2c3e50",
+  accent    = "#c0392b",
+  good      = "#27ae60",
+  warn      = "#e67e22",
+  muted     = "#95a5a6"
+)
 
-# Team Members
+# ggplot teması
+theme_set(
+  theme_minimal(base_size = 12) +
+    theme(
+      plot.title       = element_text(face = "bold", size = 13, hjust = 0),
+      plot.subtitle    = element_text(colour = "#6b6560", size = 10.5, hjust = 0),
+      plot.caption     = element_text(colour = "#95a5a6", size = 8, hjust = 0),
+      plot.background  = element_rect(fill = "#f8f5f0", colour = NA),
+      panel.background = element_rect(fill = "#f8f5f0", colour = NA),
+      panel.grid.major = element_line(colour = "#e0dbd3"),
+      panel.grid.minor = element_blank(),
+      legend.position  = "top",
+      legend.text      = element_text(size = 9),
+      axis.text        = element_text(colour = "#6b6560", size = 9),
+      axis.title       = element_text(colour = "#1a1814", size = 10)
+    )
+)
+```
 
-1.  Kayra Yaltirik https://emu-hacettepe-analytics.github.io/emu430-spring2026-kayrayltrk/
+## Project Overview
 
-2.  Ilhan Emre Can https://emu-hacettepe-analytics.github.io/emu430-spring2026-ilhanemrecan/
+Road traffic safety is one of Türkiye's most persistent public challenges. Between
+2015 and 2024 the registered vehicle fleet grew by **57%** — yet fatal-or-injurious
+accidents rose **46%**, reaching **266,854** in 2024. This project analyses a decade
+of official accident statistics from **TÜİK**, **KGM**, and **EGM** to answer four
+core questions:
 
-3.  Arda Tuyluoglu https://emu-hacettepe-analytics.github.io/emu430-spring2026-ardatuyluoglulab/
+1. How have fatality and injury rates evolved relative to fleet growth?
+2. Where is the safety burden concentrated — seasonally, by vehicle type, by geography?
+3. Which driver behaviours and crash types are most lethal?
+4. How does Türkiye compare with European peers?
 
+Explore the full analysis on the [Analysis](analysis.qmd) page and dataset details
+on the [Data](data.qmd) page.
 
-# Project Topic
+---
 
-# Data Set
+## 2024 Snapshot
+
+```{r topline-table}
+y    <- annual |> filter(year == 2024)
+prev <- annual |> filter(year == 2023)
+
+tibble::tibble(
+  Indicator = c(
+    "Registered vehicles",
+    "Total accidents",
+    "Fatal / injury accidents",
+    "Deaths (within 30 days)",
+    "Injured"
+  ),
+  `2024` = c(
+    comma(y$registered_vehicles),
+    comma(y$total_accidents),
+    comma(y$fatal_injury_accidents),
+    comma(y$deaths_total),
+    comma(y$injured)
+  ),
+  `Change vs 2023` = c(
+    percent((y$registered_vehicles    - prev$registered_vehicles)    / prev$registered_vehicles,    0.1),
+    percent((y$total_accidents         - prev$total_accidents)         / prev$total_accidents,         0.1),
+    percent((y$fatal_injury_accidents  - prev$fatal_injury_accidents)  / prev$fatal_injury_accidents,  0.1),
+    percent((y$deaths_total            - prev$deaths_total)            / prev$deaths_total,            0.1),
+    percent((y$injured                 - prev$injured)                 / prev$injured,                 0.1)
+  )
+) |>
+  kable(align = "lrr")
+```
+
+---
+
+## Key Takeaways
+
+::: {.callout-note icon="false"}
+### Summary of Findings
+
+- **Volume up, per-vehicle risk down.** Total accidents grew 46% from 2015 to 2024,
+  yet deaths per 100,000 registered vehicles fell from **37.7 to 20.3** — a ~46%
+  reduction in vehicle-normalised fatality risk.
+
+- **2020 was a pandemic-era anomaly.** Both accident volume and deaths fell sharply
+  (deaths: 4,866 — decade low), then overshot pre-pandemic levels by 2023.
+
+- **Driver fault dominates.** Driver errors account for ~88–90% of attributable
+  causes every year. The single most common error in 2024 is *failing to adapt
+  speed to road, weather, and traffic conditions* (40.8% of driver faults).
+
+- **Motorcycles carry outsized risk.** They make up 31.5% of vehicles in
+  fatal/injury accidents yet account for **40.0%** of driver deaths and **54.1%**
+  of driver injuries.
+
+- **Türkiye lags Europe.** With ~74 deaths per million population in 2024,
+  Türkiye sits well above the EU-27 average of ~47.
+:::
