@@ -1,4 +1,5 @@
 ---
+<<<<<<< HEAD
 title: "Turkish Housing Market"
 subtitle: "Nominal Growth, Real Losses, and Affordability — 2010–2024"
 author:
@@ -9,16 +10,15 @@ author:
   - name: "Kayra Yaltırık"
     url: https://github.com/KULLANICI_ADI_KAYRA
 date: today
+=======
+title: "Team Sansasyonel"
+sidebar: false 
+>>>>>>> 3ecdf6adb105d58800add93ed8e4cdfa3502a3f5
 ---
 
-```{r setup, include=FALSE}
-library(dplyr)
-library(ggplot2)
-library(scales)
-library(knitr)
-library(tidyr)
-library(DT)
+This is our project webpage.
 
+<<<<<<< HEAD
 load("data/housing_market_tr.RData")
 
 pal <- list(
@@ -47,9 +47,18 @@ theme_set(
     )
 )
 ```
+=======
+Please stay tuned to follow our project activities.
 
-## Project Overview
+This is our template.
 
+# Team Members
+>>>>>>> 3ecdf6adb105d58800add93ed8e4cdfa3502a3f5
+
+1.  Kayra Yaltr??k
+https://emu-hacettepe-analytics.github.io/emu430-spring2026-kayrayltrk/
+
+<<<<<<< HEAD
 Turkey has experienced one of the world's most dramatic housing price surges in recent
 years — driven by high inflation, sharp currency depreciation, post-earthquake demand
 shocks, and structural supply constraints. Between 2010 and 2024, the **Residential
@@ -63,12 +72,18 @@ This project investigates the Turkish housing market through four lenses:
 2. Which **regions** have experienced the most extreme price growth, and what patterns emerge geographically?
 3. How has **housing affordability** changed — measured by the m² price-to-minimum wage ratio?
 4. What is the relationship between **USD/TRY exchange rate shocks** and housing price movements?
+=======
+2.  ??lhan Emre Can https://emu-hacettepe-analytics.github.io/emu430-spring2026-ilhanemrecan/
 
-Explore the full analysis on the [Analysis](analysis.qmd) page and dataset details
-on the [Data](data.qmd) page.
+3.  Arda Tuyluoglu
+https://emu-hacettepe-analytics.github.io/emu430-spring2026-ardatuyluoglulab/
+>>>>>>> 3ecdf6adb105d58800add93ed8e4cdfa3502a3f5
 
 ---
 
+# Project Topic
+
+<<<<<<< HEAD
 ## 2024 Snapshot
 
 ```{r topline}
@@ -129,3 +144,6 @@ tibble::tibble(
   fell to ~549,000 in 2024. This structural supply decline, combined with post-earthquake
   displacement demand, is reinforcing price pressure.
 :::
+=======
+# Data Set
+>>>>>>> 3ecdf6adb105d58800add93ed8e4cdfa3502a3f5
